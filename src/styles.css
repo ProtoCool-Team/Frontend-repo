@@ -1,0 +1,268 @@
+:root {
+  --ink: #1d2433;
+  --paper: #f7f8fa;
+  --surface: #ffffff;
+  --line: #d9dde5;
+  --muted: #5d6676;
+  --primary: #2346b8;
+  --primary-ink: #ffffff;
+  --danger: #b3261e;
+  --ok-bg: #e3f3e8;
+  --ok-ink: #1d6b3a;
+  --warn-bg: #fdf0d5;
+  --warn-ink: #7a5300;
+  --off-bg: #eceef2;
+  --off-ink: #4a5161;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --ink: #e6e9ef;
+    --paper: #141821;
+    --surface: #1c212c;
+    --line: #323a49;
+    --muted: #9aa3b4;
+    --primary: #7f9cff;
+    --primary-ink: #0f1420;
+    --danger: #ff8a80;
+    --ok-bg: #173826;
+    --ok-ink: #8fe0ab;
+    --warn-bg: #3d3010;
+    --warn-ink: #f3cc78;
+    --off-bg: #2a303c;
+    --off-ink: #b9c0cd;
+    color-scheme: dark;
+  }
+}
+* {
+  box-sizing: border-box;
+}
+body {
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: 'Atkinson Hyperlegible', system-ui, sans-serif;
+  font-size: 16px;
+  line-height: 1.5;
+}
+.page {
+  max-width: 1040px;
+  margin: 0 auto;
+  padding: 40px 20px 64px;
+}
+.top {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 16px;
+  flex-wrap: wrap;
+  margin-bottom: 24px;
+}
+h1 {
+  font-family: 'Fraunces', Georgia, serif;
+  font-weight: 600;
+  font-size: 2.25rem;
+  margin: 0;
+  line-height: 1.15;
+}
+h2 {
+  font-family: 'Fraunces', Georgia, serif;
+  font-weight: 600;
+  font-size: 1.35rem;
+  margin: 0 0 16px;
+}
+.muted {
+  color: var(--muted);
+  margin: 4px 0 0;
+  font-size: 0.92rem;
+}
+
+button {
+  font: inherit;
+  cursor: pointer;
+  border-radius: 6px;
+  padding: 8px 14px;
+  border: 1px solid transparent;
+}
+button:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+  outline: 3px solid var(--primary);
+  outline-offset: 2px;
+}
+.btn-primary {
+  background: var(--primary);
+  color: var(--primary-ink);
+  font-weight: 700;
+}
+.btn-primary:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+.btn-ghost {
+  background: transparent;
+  color: var(--ink);
+  border-color: var(--line);
+}
+.btn-danger {
+  background: transparent;
+  color: var(--danger);
+  border-color: transparent;
+}
+.btn-danger:hover {
+  border-color: var(--danger);
+}
+
+.notice,
+.success,
+.error {
+  padding: 10px 14px;
+  border-radius: 6px;
+  margin: 0 0 16px;
+}
+.notice {
+  background: var(--off-bg);
+  color: var(--off-ink);
+}
+.success {
+  background: var(--ok-bg);
+  color: var(--ok-ink);
+}
+.error {
+  background: transparent;
+  border: 1px solid var(--danger);
+  color: var(--danger);
+}
+
+.panel {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-left: 4px solid var(--primary);
+  padding: 24px;
+  margin-bottom: 28px;
+}
+label {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-weight: 700;
+  font-size: 0.92rem;
+  margin-bottom: 16px;
+  flex: 1;
+}
+input,
+select,
+textarea {
+  font: inherit;
+  font-weight: 400;
+  padding: 9px 11px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: var(--paper);
+  color: var(--ink);
+}
+.row {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+.row > label {
+  min-width: 200px;
+}
+.field-error {
+  color: var(--danger);
+  font-weight: 400;
+  font-size: 0.88rem;
+}
+.form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+.filters {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+.chip {
+  background: transparent;
+  border-color: var(--line);
+  color: var(--muted);
+  padding: 5px 14px;
+  border-radius: 999px;
+}
+.chip.active {
+  background: var(--ink);
+  color: var(--paper);
+  border-color: var(--ink);
+}
+
+.table-wrap {
+  overflow-x: auto;
+  background: var(--surface);
+  border: 1px solid var(--line);
+}
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+th {
+  text-align: left;
+  font-size: 0.85rem;
+  color: var(--muted);
+  font-weight: 700;
+  padding: 12px 16px;
+  border-bottom: 2px solid var(--line);
+}
+td {
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--line);
+  vertical-align: top;
+}
+tr:last-child td {
+  border-bottom: none;
+}
+.actions {
+  white-space: nowrap;
+  text-align: right;
+}
+.actions button {
+  margin-left: 6px;
+}
+
+.status {
+  display: inline-block;
+  padding: 2px 10px;
+  border-radius: 999px;
+  font-size: 0.85rem;
+  white-space: nowrap;
+}
+.status-AVAILABLE {
+  background: var(--ok-bg);
+  color: var(--ok-ink);
+}
+.status-MAINTENANCE {
+  background: var(--warn-bg);
+  color: var(--warn-ink);
+}
+.status-UNAVAILABLE {
+  background: var(--off-bg);
+  color: var(--off-ink);
+}
+
+.empty {
+  padding: 32px;
+  text-align: center;
+  background: var(--surface);
+  border: 1px dashed var(--line);
+  color: var(--muted);
+}
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+}
