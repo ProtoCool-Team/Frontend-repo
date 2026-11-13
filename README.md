@@ -1,38 +1,55 @@
 # RRM – Frontend (React + Vite)
 
-## Cum îl pornești
+Implementează ecranul **Catalog** din prototipul Figma și pagina
+**Administrare → Gestionare resurse** (adăugare, editare, ștergere).
 
-1. Instalează Node.js (versiunea 18 sau mai nouă): https://nodejs.org
-2. În folderul proiectului rulezi:
-   npm install
-   npm run dev
-3. Deschizi http://localhost:5173 în browser.
+## Pornire
 
-## Mod test vs. backend real
+    npm install
+    npm run dev
 
-În fișierul `.env`:
+Apoi deschideți http://localhost:5173
 
-- `VITE_USE_MOCK=true`: merge fără backend, cu date de test (pentru 3.6).
-- `VITE_USE_MOCK=false`: folosește backend-ul de la `VITE_API_URL` (pentru 3.7).
-  După ce modifici `.env`, oprești (Ctrl+C) și repornești `npm run dev`.
+## Mod test vs. backend real (fișierul .env)
+
+- `VITE_USE_MOCK=true`: merge fără backend, cu datele din prototip.
+- `VITE_USE_MOCK=false`: folosește backend-ul de la `VITE_API_URL`.
+  După modificarea `.env`, opriți (Ctrl+C) și reporniți `npm run dev`.
 
 ## Ce așteaptă frontend-ul de la backend
 
-- GET /api/resources → listă de resurse
-- POST /api/resources → creează o resursă
-- PUT /api/resources/{id} → modifică o resursă
-- DELETE /api/resources/{id} → șterge o resursă
+| Metodă | Adresă              | Răspuns              |
+| ------ | ------------------- | -------------------- |
+| GET    | /api/resources      | listă de resurse     |
+| POST   | /api/resources      | resursa creată (201) |
+| PUT    | /api/resources/{id} | resursa actualizată  |
+| DELETE | /api/resources/{id} | 204, fără conținut   |
 
-O resursă arată așa:
-{ "id": 1, "name": "Robot NAO", "type": "EQUIPMENT" | "ROOM",
-"location": "C201", "capacity": 30 | null,
-"status": "AVAILABLE" | "MAINTENANCE" | "UNAVAILABLE", "description": "..." }
+O resursă:
+
+    {
+      "id": 1,
+      "name": "Robot humanoid NAO v6",
+      "category": "ROBOT",            // ROBOT | MEASUREMENT | COMPUTE | ROOM
+      "description": "Robot programabil...",
+      "building": "Corp C",
+      "room": "Sala C204",
+      "status": "AVAILABLE",          // AVAILABLE | UNAVAILABLE
+      "requiresApproval": true,
+      "statusNote": null,             // motivul, dacă e UNAVAILABLE
+      "unavailableUntil": null        // dată "AAAA-LL-ZZ", dacă e UNAVAILABLE
+    }
+
+Erori de validare (opțional): `{"message": "...", "errors": {"name": "..."}}`
 
 Backend-ul trebuie să permită CORS pentru http://localhost:5173.
 
-## Stilul codului (3.5)
+Starea „Ocupat” și bara de disponibilitate vor veni din rezervări, într-o
+etapă următoare; până atunci, resursele de la backend apar ca „Liber”.
 
-Frontend-ul urmează Google JavaScript Style Guide, verificat cu ESLint și Prettier.
+## Stilul codului
+
+Google JavaScript Style Guide, verificat cu ESLint și Prettier.
 Înainte de fiecare pull request:
 npm run format
 npm run lint
