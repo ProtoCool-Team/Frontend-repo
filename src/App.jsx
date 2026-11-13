@@ -1,39 +1,63 @@
-import {useEffect, useState} from 'react';
+import {useCallback, useEffect, useState} from 'react';
 import {api, isMock} from './api/resources.js';
-import {TYPES} from './labels.js';
-import ResourceTable from './components/ResourceTable.jsx';
-import ResourceForm from './components/ResourceForm.jsx';
+import Header from './components/Header.jsx';
+import ResourceFormModal from './components/ResourceFormModal.jsx';
+import ConfirmDelete from './components/ConfirmDelete.jsx';
+import CatalogPage from './pages/CatalogPage.jsx';
+import ManageResourcesPage from './pages/ManageResourcesPage.jsx';
+import PlaceholderPage from './pages/PlaceholderPage.jsx';
+
+const PAGES = ['catalog', 'calendar', 'reservations', 'teams', 'admin'];
+const pageFromHash = () => {
+  const h = window.location.hash.slice(1);
+  return PAGES.includes(h) ? h : 'catalog';
+};
 
 export default function App() {
+  const [page, setPage] = useState(pageFromHash);
   const [resources, setResources] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
-  const [message, setMessage] = useState('');
-  const [editing, setEditing] = useState(null); // null = formular închis, {} = resursă nouă, obiect = editare
+  const [loadError, setLoadError] = useState('');
+  const [search, setSearch] = useState('');
+  const [toast, setToast] = useState(null);
+  const [editing, setEditing] = useState(null); // null | {} | resursă
+  const [deleting, setDeleting] = useState(null);
   const [serverErrors, setServerErrors] = useState({});
-  const [filter, setFilter] = useState('ALL');
 
-  async function load() {
+  const load = useCallback(async () => {
     setLoading(true);
-    setError('');
+    setLoadError('');
     try {
       setResources(await api.getAll());
     } catch (e) {
-      setError(
-        `Nu am putut încărca resursele: ${e.message}. Verifică dacă backend-ul rulează.`,
+      setLoadError(
+        `Nu am putut încărca resursele (${e.message}). ` +
+          'Verifică dacă backend-ul rulează.',
       );
     } finally {
       setLoading(false);
     }
-  }
+  }, []);
 
   useEffect(() => {
     load();
+  }, [load]);
+
+  useEffect(() => {
+    const onHash = () => setPage(pageFromHash());
+    window.addEventListener('hashchange', onHash);
+    return () => window.removeEventListener('hashchange', onHash);
   }, []);
 
-  function flash(text) {
-    setMessage(text);
-    setTimeout(() => setMessage(''), 3000);
+  function navigate(p) {
+    window.location.hash = p;
+    setPage(p);
+    window.scrollTo(0, 0);
+  }
+
+  function notify(text, kind = 'ok') {
+    setToast({text, kind});
+    setTimeout(() => setToast(null), 3200);
   }
 
   async function handleSave(data) {
@@ -41,110 +65,117 @@ export default function App() {
     try {
       if (editing.id) {
         await api.update(editing.id, data);
-        flash(`Resursa „${data.name}” a fost actualizată.`);
+        notify(`„${data.name}” a fost actualizată.`);
       } else {
         await api.create(data);
-        flash(`Resursa „${data.name}” a fost adăugată.`);
+        notify(`„${data.name}” a fost adăugată în catalog.`);
       }
       setEditing(null);
       load();
     } catch (e) {
       setServerErrors(e.fieldErrors || {});
-      setError(e.message);
+      notify(e.message, 'error');
     }
   }
 
-  async function handleDelete(r) {
-    if (
-      !window.confirm(
-        `Ștergi resursa „${r.name}”? Acțiunea nu poate fi anulată.`,
-      )
-    )
-      return;
+  async function handleDelete() {
+    const r = deleting;
     try {
       await api.remove(r.id);
-      flash(`Resursa „${r.name}” a fost ștearsă.`);
+      notify(`„${r.name}” a fost ștearsă.`);
+      setDeleting(null);
       load();
     } catch (e) {
-      setError(`Nu am putut șterge resursa: ${e.message}`);
+      notify(`Nu am putut șterge resursa: ${e.message}`, 'error');
     }
   }
 
-  const visible =
-    filter === 'ALL' ? resources : resources.filter((r) => r.type === filter);
-
   return (
-    <div className="page">
-      <header className="top">
-        <div>
-          <h1>Resurse de cercetare</h1>
-          <p className="muted">
-            Echipamentele și sălile care pot fi rezervate de echipe.
-          </p>
+    <>
+      <Header
+        page={page}
+        onNavigate={navigate}
+        search={search}
+        onSearch={setSearch}
+      />
+
+      {(isMock || loadError) && (
+        <div className="banners">
+          {isMock && (
+            <p className="banner">
+              Mod test: datele sunt locale și revin la valorile inițiale la
+              reîncărcarea paginii.
+            </p>
+          )}
+          {loadError && (
+            <p className="banner banner-error" role="alert">
+              {loadError}{' '}
+              <button className="link" onClick={load}>
+                Încearcă din nou
+              </button>
+            </p>
+          )}
         </div>
-        {!editing && (
-          <button
-            className="btn-primary"
-            onClick={() => {
-              setServerErrors({});
-              setEditing({});
-            }}
-          >
-            Adaugă resursă
-          </button>
-        )}
-      </header>
-
-      {isMock && (
-        <p className="notice">
-          Mod test: datele sunt locale și se pierd la reîncărcarea paginii.
-        </p>
-      )}
-      {message && (
-        <p className="success" role="status">
-          {message}
-        </p>
-      )}
-      {error && (
-        <p className="error" role="alert">
-          {error}
-        </p>
       )}
 
-      {editing && (
-        <ResourceForm
-          key={editing.id || 'new'}
-          initial={editing.id ? editing : null}
-          serverErrors={serverErrors}
-          onSave={handleSave}
-          onCancel={() => setEditing(null)}
+      {page === 'catalog' && (
+        <CatalogPage
+          resources={resources}
+          loading={loading}
+          search={search}
+          onSearch={setSearch}
+          onReserve={(r) =>
+            notify(
+              `Rezervarea pentru „${r.name}” va fi disponibilă în ` +
+                'următoarea etapă a proiectului.',
+              'info',
+            )
+          }
         />
       )}
-
-      <div className="filters" role="group" aria-label="Filtrează după tip">
-        {[['ALL', 'Toate'], ...Object.entries(TYPES)].map(([k, v]) => (
-          <button
-            key={k}
-            className={filter === k ? 'chip active' : 'chip'}
-            onClick={() => setFilter(k)}
-          >
-            {v}
-          </button>
-        ))}
-      </div>
-
-      {loading ? (
-        <p className="muted">Se încarcă resursele…</p>
-      ) : (
-        <ResourceTable
-          resources={visible}
+      {page === 'admin' && (
+        <ManageResourcesPage
+          resources={resources}
+          loading={loading}
+          onAdd={() => {
+            setServerErrors({});
+            setEditing({});
+          }}
           onEdit={(r) => {
             setServerErrors({});
             setEditing(r);
           }}
-          onDelete={handleDelete}
+          onDelete={setDeleting}
         />
       )}
-    </div>
+      {['calendar', 'reservations', 'teams'].includes(page) && (
+        <PlaceholderPage page={page} onNavigate={navigate} />
+      )}
+
+      <footer className="site-foot">
+        © 2026 Universitatea · Suport: helpdesk@universitate.ro
+      </footer>
+
+      {editing && (
+        <ResourceFormModal
+          initial={editing.id ? editing : null}
+          serverErrors={serverErrors}
+          onSave={handleSave}
+          onClose={() => setEditing(null)}
+        />
+      )}
+      {deleting && (
+        <ConfirmDelete
+          resource={deleting}
+          onConfirm={handleDelete}
+          onClose={() => setDeleting(null)}
+        />
+      )}
+      {toast && (
+        <div className={`toast toast-${toast.kind}`} role="status">
+          {toast.text}
+        </div>
+      )}
+    </>
   );
 }
