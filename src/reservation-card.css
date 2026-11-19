@@ -1,0 +1,112 @@
+/* ---------- Cardurile rezervărilor și statusurile (KAN-32) ---------- */
+.rs-card {
+  display: grid;
+  grid-template-columns: 64px minmax(0, 1fr) 190px auto;
+  align-items: center;
+  gap: 16px;
+  background: var(--surface);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  border-left: 4px solid var(--line);
+  padding: 14px 16px;
+  margin-bottom: 12px;
+}
+.rs-cover {
+  width: 64px;
+  height: 64px;
+  border-radius: 10px;
+  display: grid;
+  place-items: center;
+  color: #fff;
+}
+.rs-card-main p {
+  margin: 0;
+}
+.rs-card-main .card-title {
+  margin: 2px 0 4px;
+}
+.rs-card-status {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 6px;
+}
+.rs-progress {
+  width: 100%;
+  height: 6px;
+  border-radius: 999px;
+  background: #e2e8f0;
+  overflow: hidden;
+}
+.rs-progress span {
+  display: block;
+  height: 100%;
+  background: #22c55e;
+}
+.rs-approval {
+  background: #fffbeb;
+  border: 1px solid #fde68a;
+  color: #92400e;
+  border-radius: 6px;
+  padding: 4px 8px;
+  font-size: 11.5px;
+}
+
+/* Statusuri: culoarea etichetei și a marginii cardului */
+.rs-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  border-radius: 999px;
+  padding: 2px 9px;
+  font-size: 11px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+.rs-ACTIVE {
+  background: #dcfce7;
+  color: #15803d;
+}
+.rs-APPROVED {
+  background: #dbeafe;
+  color: #1d4ed8;
+}
+.rs-PENDING,
+.rs-DRAFT {
+  background: #fef3c7;
+  color: #b45309;
+}
+.rs-REJECTED {
+  background: #fee2e2;
+  color: #b91c1c;
+}
+.rs-CANCELLED,
+.rs-EXPIRED,
+.rs-COMPLETED {
+  background: #e2e8f0;
+  color: #475569;
+}
+.rs-border-ACTIVE {
+  border-left-color: #22c55e;
+}
+.rs-border-APPROVED {
+  border-left-color: var(--blue);
+}
+.rs-border-PENDING,
+.rs-border-DRAFT {
+  border-left-color: #f59e0b;
+}
+
+@media (max-width: 860px) {
+  .rs-card {
+    grid-template-columns: 48px 1fr;
+  }
+  .rs-cover {
+    width: 48px;
+    height: 48px;
+  }
+  .rs-card-status,
+  .rs-card .row-actions {
+    grid-column: 2;
+  }
+}

@@ -1,7 +1,8 @@
 # RRM – Frontend (React + Vite)
 
-Implementează ecranul **Catalog** din prototipul Figma și pagina
-**Administrare → Gestionare resurse** (adăugare, editare, ștergere).
+Implementează ecranul **Catalog** din prototipul Figma, pagina
+**Administrare → Gestionare resurse** (adăugare, editare, ștergere) și pagina
+**Rezervările mele** (KAN-32).
 
 ## Pornire
 
@@ -28,13 +29,34 @@ Implementează ecranul **Catalog** din prototipul Figma și pagina
 Adresa API-ului: `http://localhost:8000/api/v1` (`VITE_API_URL`). Backend-ul
 permite CORS pentru http://localhost:5173.
 
-| Metodă | Adresă                 | Răspuns                                |
-| ------ | ---------------------- | -------------------------------------- |
-| GET    | /api/v1/resources      | listă de resurse, cu locația fiecăreia |
-| POST   | /api/v1/resources      | resursa creată (201)                   |
-| PUT    | /api/v1/resources/{id} | resursa actualizată                    |
-| DELETE | /api/v1/resources/{id} | 204; 409 dacă are rezervări            |
-| GET    | /api/v1/locations      | locațiile, pentru lista „Locație”      |
+| Metodă | Adresă                              | Răspuns                                       |
+| ------ | ----------------------------------- | --------------------------------------------- |
+| GET    | /api/v1/resources                   | listă de resurse, cu locația fiecăreia        |
+| POST   | /api/v1/resources                   | resursa creată (201)                          |
+| PUT    | /api/v1/resources/{id}              | resursa actualizată                           |
+| DELETE | /api/v1/resources/{id}              | 204; 409 dacă are rezervări                   |
+| GET    | /api/v1/locations                   | locațiile, pentru lista „Locație”             |
+| GET    | /api/v1/me/reservations             | rezervările mele                              |
+| PATCH  | /api/v1/me/reservations/{id}/cancel | anulează rezervarea; 409 dacă nu se mai poate |
+
+## Rezervările mele (KAN-32)
+
+Până avem login, „eu” este utilizatorul din `DEMO_USER_ID` (în `.env`-ul
+backend-ului). Pentru alt utilizator, puneți în `.env`-ul frontend-ului
+`VITE_USER_ID=<uuid>`; se trimite ca antet `X-User-Id`.
+
+Gata: cardurile de sumar, filtrele (status, categorie), căutarea, sortarea,
+filele, „Active și viitoare” (cu progres și anulare), „Istoric” cu paginare.
+Statusul afișat se calculează după oră (`displayStatus` din
+`src/reservationStatus.js`), iar filtrarea e în `src/reservationFilters.js`.
+
+De făcut (căutați `TODO` în cod):
+
+- mini-calendarul și panoul de notificări (`ReservationSidebar.jsx`;
+  notificările au nevoie de `GET /api/v1/me/notifications` în backend);
+- butoanele Detalii, Prelungește, Rezervă din nou și Exportă CSV;
+- filtrul „Perioadă” (`ReservationFilters.jsx`);
+- vederea Calendar (KAN-34).
 
 O resursă, așa cum vine de la backend:
 

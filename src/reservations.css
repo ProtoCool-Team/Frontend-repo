@@ -1,0 +1,167 @@
+/* ---------- Rezervările mele (KAN-32) ---------- */
+.rs-head-actions {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+.rs-view-toggle {
+  display: flex;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 3px;
+}
+.rs-view-toggle button {
+  border: 0;
+  background: none;
+  border-radius: 6px;
+  padding: 7px 12px;
+  font-weight: 500;
+}
+.rs-view-toggle .active {
+  background: #dbeafe;
+  color: var(--blue);
+}
+
+/* Cardurile de sumar */
+.rs-stats {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+  margin-bottom: 20px;
+}
+.rs-stat {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  background: var(--surface);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: 16px 18px;
+}
+.rs-stat p {
+  margin: 0;
+}
+.rs-stat-value {
+  font-size: 20px;
+  font-weight: 800;
+  margin: 4px 0 2px !important;
+}
+.rs-stat-icon {
+  flex: none;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+}
+.rs-tone-green {
+  background: #dcfce7;
+  color: #15803d;
+}
+.rs-tone-blue {
+  background: #dbeafe;
+  color: var(--blue);
+}
+.rs-tone-amber {
+  background: #fef3c7;
+  color: #b45309;
+}
+.rs-tone-slate {
+  background: #e2e8f0;
+  color: #334155;
+}
+
+/* Așezarea: filtre | listă | coloana din dreapta */
+.rs-layout {
+  display: grid;
+  grid-template-columns: 220px minmax(0, 1fr) 260px;
+  gap: 20px;
+  align-items: start;
+}
+.rs-tabs {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+}
+.rs-tabs .chip {
+  padding: 6px 12px;
+  font-size: 12.5px;
+}
+.rs-tabs > .muted {
+  white-space: nowrap;
+}
+.rs-section {
+  margin-bottom: 24px;
+}
+.rs-section .table td {
+  font-size: 13px;
+  white-space: nowrap;
+}
+.rs-section .table td.muted {
+  white-space: normal;
+}
+.rs-section-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin: 8px 0 12px;
+}
+.rs-section-head h2 {
+  font-size: 17px;
+  margin: 0;
+}
+.rs-section-head h2 small {
+  font-weight: 400;
+}
+.rs-mini-icon {
+  width: 26px;
+  height: 26px;
+  border-radius: 6px;
+  display: grid;
+  place-items: center;
+  color: #fff;
+}
+
+/* Coloana din dreapta */
+.rs-side {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.rs-side-panel {
+  padding: 16px;
+}
+.rs-side-panel h3 {
+  font-size: 14px;
+  margin: 0 0 6px;
+}
+.rs-no-overlap {
+  display: flex;
+  gap: 10px;
+  background: #f0fdf4;
+  border: 1px solid #bbf7d0;
+  border-radius: var(--radius);
+  padding: 14px;
+  color: #15803d;
+}
+.rs-no-overlap p {
+  margin: 2px 0 0;
+  font-size: 12px;
+}
+
+@media (max-width: 1200px) {
+  .rs-layout {
+    grid-template-columns: 220px minmax(0, 1fr);
+  }
+  .rs-side {
+    grid-column: 1 / -1;
+  }
+}
+@media (max-width: 860px) {
+  .rs-stats,
+  .rs-layout {
+    grid-template-columns: 1fr;
+  }
+}
