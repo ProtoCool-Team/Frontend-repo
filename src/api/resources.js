@@ -2,7 +2,8 @@
 // Dacă VITE_USE_MOCK=true, se folosesc date de test (fără backend).
 import {mockResources} from './mockData.js';
 
-const BASE = import.meta.env.VITE_API_URL || 'http://localhost:8000/api/v1';
+export const BASE =
+  import.meta.env.VITE_API_URL || 'http://localhost:8000/api/v1';
 const USE_MOCK = import.meta.env.VITE_USE_MOCK === 'true';
 
 // ---------- Adaptare între backend-ul Express și interfață ----------
@@ -10,7 +11,7 @@ const USE_MOCK = import.meta.env.VITE_USE_MOCK === 'true';
 // Locația e o referință (location_id) la tabelul locations; backend-ul
 // întoarce și building/room/floor ale ei. Motivul și data de
 // indisponibilitate nu au încă coloane proprii, deci stau în attributes.
-const CATEGORY_FROM_API = {
+export const CATEGORY_FROM_API = {
   ROBOT: 'ROBOT',
   MEASURING_DEVICE: 'MEASUREMENT',
   COMPUTE_CLUSTER: 'COMPUTE',
@@ -68,7 +69,7 @@ function errorMessage(body, status) {
   return body.error || body.message || `Eroare ${status} de la server`;
 }
 
-async function request(path, options = {}) {
+export async function request(path, options = {}) {
   const res = await fetch(`${BASE}${path}`, {
     headers: {'Content-Type': 'application/json'},
     ...options,
