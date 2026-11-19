@@ -1,4 +1,4 @@
-import {CATEGORIES} from '../constants.js';
+import {categoryLabel} from '../constants.js';
 import {nextChangeText, resourceState} from '../availability.js';
 import {Icon} from './Icons.jsx';
 import StatusPill from './StatusPill.jsx';
@@ -19,9 +19,7 @@ export default function ResourceCard({resource, onReserve}) {
 
       <div className="card-body">
         <div className="card-meta">
-          <span className="eyebrow">
-            {CATEGORIES[resource.category]?.single || resource.category}
-          </span>
+          <span className="eyebrow">{categoryLabel(resource.category)}</span>
           <StatusPill state={state} />
         </div>
         <h3 className="card-title">{resource.name}</h3>

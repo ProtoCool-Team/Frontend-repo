@@ -1,14 +1,14 @@
 import {useState} from 'react';
-import {CATEGORIES} from '../constants.js';
+import {CATEGORIES, STATUS, locationLabel} from '../constants.js';
+import Field from './Field.jsx';
 import Modal from './Modal.jsx';
 
 const EMPTY = {
   name: '',
   category: 'ROBOT',
   description: '',
-  building: '',
-  room: '',
-  status: 'AVAILABLE',
+  location_id: '',
+  status: STATUS.AVAILABLE,
   statusNote: '',
   unavailableUntil: '',
   requiresApproval: false,
@@ -16,6 +16,7 @@ const EMPTY = {
 
 export default function ResourceFormModal({
   initial,
+  locations = [],
   serverErrors = {},
   onSave,
   onClose,
@@ -32,18 +33,21 @@ export default function ResourceFormModal({
   );
   const [errors, setErrors] = useState({});
   const [saving, setSaving] = useState(false);
+  const unavailable = form.status === STATUS.UNAVAILABLE;
 
-  const set = (field) => (e) =>
+  // Handler de onChange care scrie valoarea controlului în form[field]
+  const bindField = (field) => (e) =>
     setForm({
       ...form,
       [field]: e.target.type === 'checkbox' ? e.target.checked : e.target.value,
     });
 
+  const errorFor = (field) => errors[field] || serverErrors[field];
+
   function validate() {
     const e = {};
     if (!form.name.trim()) e.name = 'Completează denumirea resursei.';
-    if (!form.building.trim()) e.building = 'Completează clădirea.';
-    if (!form.room.trim()) e.room = 'Completează sala sau locul.';
+    if (!form.location_id) e.location_id = 'Alege locația.';
     setErrors(e);
     return Object.keys(e).length === 0;
   }
@@ -52,13 +56,11 @@ export default function ResourceFormModal({
     e.preventDefault();
     if (!validate()) return;
     setSaving(true);
-    const unavailable = form.status === 'UNAVAILABLE';
     const data = {
       name: form.name.trim(),
       category: form.category,
       description: form.description.trim(),
-      building: form.building.trim(),
-      room: form.room.trim(),
+      location_id: form.location_id,
       status: form.status,
       requiresApproval: form.requiresApproval,
       statusNote: unavailable ? form.statusNote.trim() || null : null,
@@ -69,96 +71,77 @@ export default function ResourceFormModal({
     setSaving(false);
   }
 
-  const err = (f) => errors[f] || serverErrors[f];
-
   return (
     <Modal
       title={initial ? 'Editează resursa' : 'Resursă nouă'}
       onClose={onClose}
     >
       <form className="form" onSubmit={handleSubmit} noValidate>
-        <label className="field">
-          <span>Denumire</span>
+        <Field label="Denumire" error={errorFor('name')}>
           <input
             value={form.name}
-            onChange={set('name')}
+            onChange={bindField('name')}
             placeholder="ex. Robot humanoid NAO v6"
           />
-          {err('name') && <small className="field-error">{err('name')}</small>}
-        </label>
+        </Field>
 
-        <label className="field">
-          <span>Categorie</span>
-          <select value={form.category} onChange={set('category')}>
+        <Field label="Categorie">
+          <select value={form.category} onChange={bindField('category')}>
             {Object.entries(CATEGORIES).map(([k, c]) => (
               <option key={k} value={k}>
                 {c.label}
               </option>
             ))}
           </select>
-        </label>
+        </Field>
 
-        <label className="field">
-          <span>Descriere</span>
+        <Field label="Descriere">
           <textarea
             rows="2"
             value={form.description}
-            onChange={set('description')}
+            onChange={bindField('description')}
             placeholder="Pe scurt: ce face și pentru ce se folosește"
           />
-        </label>
+        </Field>
 
-        <div className="form-row">
-          <label className="field">
-            <span>Clădire</span>
-            <input
-              value={form.building}
-              onChange={set('building')}
-              placeholder="ex. Corp C"
-            />
-            {err('building') && (
-              <small className="field-error">{err('building')}</small>
-            )}
-          </label>
-          <label className="field">
-            <span>Sală / loc</span>
-            <input
-              value={form.room}
-              onChange={set('room')}
-              placeholder="ex. Sala C204"
-            />
-            {err('room') && (
-              <small className="field-error">{err('room')}</small>
-            )}
-          </label>
-        </div>
-
-        <label className="field">
-          <span>Stare</span>
-          <select value={form.status} onChange={set('status')}>
-            <option value="AVAILABLE">Disponibil pentru rezervări</option>
-            <option value="UNAVAILABLE">Indisponibil (defect / revizie)</option>
+        <Field label="Locație" error={errorFor('location_id')}>
+          <select value={form.location_id} onChange={bindField('location_id')}>
+            <option value="">Alege clădirea și sala…</option>
+            {locations.map((l) => (
+              <option key={l.location_id} value={l.location_id}>
+                {locationLabel(l)}
+              </option>
+            ))}
           </select>
-        </label>
+        </Field>
 
-        {form.status === 'UNAVAILABLE' && (
+        <Field label="Stare">
+          <select value={form.status} onChange={bindField('status')}>
+            <option value={STATUS.AVAILABLE}>
+              Disponibil pentru rezervări
+            </option>
+            <option value={STATUS.UNAVAILABLE}>
+              Indisponibil (defect / revizie)
+            </option>
+          </select>
+        </Field>
+
+        {unavailable && (
           <div className="form-row">
-            <label className="field">
-              <span>Motiv</span>
+            <Field label="Motiv">
               <input
                 value={form.statusNote}
-                onChange={set('statusNote')}
+                onChange={bindField('statusNote')}
                 placeholder="ex. Calibrare anuală"
               />
-            </label>
-            <label className="field">
-              <span>Indisponibil până la</span>
+            </Field>
+            <Field label="Indisponibil până la">
               <input
                 type="date"
                 value={form.unavailableUntil}
-                onChange={set('unavailableUntil')}
+                onChange={bindField('unavailableUntil')}
               />
-            </label>
+            </Field>
           </div>
         )}
 
@@ -167,7 +150,7 @@ export default function ResourceFormModal({
             type="checkbox"
             role="switch"
             checked={form.requiresApproval}
-            onChange={set('requiresApproval')}
+            onChange={bindField('requiresApproval')}
           />
           <span className="switch-track" aria-hidden="true" />
           <span>Rezervările necesită aprobare</span>

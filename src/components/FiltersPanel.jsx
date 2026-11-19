@@ -14,7 +14,7 @@ export default function FiltersPanel({
   counts,
   buildings,
 }) {
-  const set = (patch) => onChange({...filters, ...patch});
+  const patchFilters = (patch) => onChange({...filters, ...patch});
 
   return (
     <aside className="filters" aria-label="Filtre">
@@ -33,7 +33,7 @@ export default function FiltersPanel({
               type="checkbox"
               checked={filters.categories.includes(key)}
               onChange={() =>
-                set({categories: toggle(filters.categories, key)})
+                patchFilters({categories: toggle(filters.categories, key)})
               }
             />
             <span>{c.label}</span>
@@ -49,7 +49,9 @@ export default function FiltersPanel({
             <input
               type="checkbox"
               checked={filters.states.includes(key)}
-              onChange={() => set({states: toggle(filters.states, key)})}
+              onChange={() =>
+                patchFilters({states: toggle(filters.states, key)})
+              }
             />
             <span>{s.filter}</span>
           </label>
@@ -62,7 +64,7 @@ export default function FiltersPanel({
           <select
             aria-label="Clădire"
             value={filters.building}
-            onChange={(e) => set({building: e.target.value})}
+            onChange={(e) => patchFilters({building: e.target.value})}
           >
             <option value="">Toate clădirile</option>
             {buildings.map((b) => (
@@ -82,7 +84,7 @@ export default function FiltersPanel({
             type="checkbox"
             role="switch"
             checked={filters.noApproval}
-            onChange={(e) => set({noApproval: e.target.checked})}
+            onChange={(e) => patchFilters({noApproval: e.target.checked})}
           />
           <span className="switch-track" aria-hidden="true" />
           <span>Doar fără aprobare manuală</span>
