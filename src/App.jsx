@@ -16,6 +16,7 @@ const pageFromHash = () => {
 export default function App() {
   const [page, setPage] = useState(pageFromHash);
   const [resources, setResources] = useState([]);
+  const [locations, setLocations] = useState([]);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState('');
   const [search, setSearch] = useState('');
@@ -28,7 +29,12 @@ export default function App() {
     setLoading(true);
     setLoadError('');
     try {
-      setResources(await api.getAll());
+      const [list, locs] = await Promise.all([
+        api.getAll(),
+        api.getLocations(),
+      ]);
+      setResources(list);
+      setLocations(locs);
     } catch (e) {
       setLoadError(
         `Nu am putut încărca resursele (${e.message}). ` +
@@ -64,7 +70,9 @@ export default function App() {
     setServerErrors({});
     try {
       if (editing.id) {
-        await api.update(editing.id, data);
+        // Pornim de la resursa originală, ca să nu se piardă câmpurile pe
+        // care formularul nu le arată (PUT înlocuiește toată resursa).
+        await api.update(editing.id, {...editing, ...data});
         notify(`„${data.name}” a fost actualizată.`);
       } else {
         await api.create(data);
@@ -159,6 +167,7 @@ export default function App() {
       {editing && (
         <ResourceFormModal
           initial={editing.id ? editing : null}
+          locations={locations}
           serverErrors={serverErrors}
           onSave={handleSave}
           onClose={() => setEditing(null)}

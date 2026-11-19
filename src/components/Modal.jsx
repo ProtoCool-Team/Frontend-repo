@@ -3,13 +3,24 @@ import {Icon} from './Icons.jsx';
 
 export default function Modal({title, onClose, children, size = 'md'}) {
   const ref = useRef(null);
+  const closeRef = useRef(onClose);
+  closeRef.current = onClose;
 
+  // Doar la deschidere: altfel, fiecare re-randare a paginii (onClose e o
+  // funcție nouă de fiecare dată) muta focusul înapoi pe primul câmp.
   useEffect(() => {
-    const onKey = (e) => e.key === 'Escape' && onClose();
+    const onKey = (e) => e.key === 'Escape' && closeRef.current();
     document.addEventListener('keydown', onKey);
-    ref.current?.querySelector('input, select, textarea, button')?.focus();
+    // Primul câmp din formular; butonul × e primul în pagină, deci e ales
+    // doar dacă fereastra nu are câmpuri (ex. confirmarea ștergerii).
+    const box = ref.current;
+    (
+      box?.querySelector('input, select, textarea') ||
+      box?.querySelector('.modal-actions button') ||
+      box?.querySelector('button')
+    )?.focus();
     return () => document.removeEventListener('keydown', onKey);
-  }, [onClose]);
+  }, []);
 
   return (
     <div

@@ -5,6 +5,24 @@ export const CATEGORIES = {
   ROOM: {label: 'Săli de laborator', single: 'Săli'},
 };
 
+// Eticheta scurtă a unei categorii (sau cheia, dacă e necunoscută)
+export function categoryLabel(key) {
+  return CATEGORIES[key]?.single || key;
+}
+
+// Eticheta unei locații, ex. „Corp C · C102 (etaj 1)”
+export function locationLabel(l) {
+  const floor =
+    l.floor === null || l.floor === undefined ? '' : ` (etaj ${l.floor})`;
+  return `${l.building} · ${l.room}${floor}`;
+}
+
+// Valorile câmpului `status` al unei resurse
+export const STATUS = {AVAILABLE: 'AVAILABLE', UNAVAILABLE: 'UNAVAILABLE'};
+
+// Valorile unui interval de o oră din `availability`
+export const SLOT = {FREE: 'free', BUSY: 'busy'};
+
 export const STATES = {
   FREE: {label: 'Liber', filter: 'Liber acum'},
   BUSY: {label: 'Ocupat', filter: 'Ocupat'},

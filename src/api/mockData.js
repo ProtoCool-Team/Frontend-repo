@@ -1,7 +1,9 @@
 // Date de test, aceleași ca în prototipul din Figma.
-// availability: 12 intervale de o oră (08–20); 'free' sau 'busy'.
-const f = 'free';
-const b = 'busy';
+// availability: 12 intervale de o oră (08–20), fiecare SLOT.FREE sau SLOT.BUSY.
+import {SLOT} from '../constants.js';
+
+const f = SLOT.FREE;
+const b = SLOT.BUSY;
 
 export const mockResources = [
   {

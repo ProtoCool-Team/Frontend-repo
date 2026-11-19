@@ -1,4 +1,4 @@
-import {CATEGORIES, resourcesLabel} from '../constants.js';
+import {categoryLabel, resourcesLabel} from '../constants.js';
 import {resourceState} from '../availability.js';
 import {Icon} from '../components/Icons.jsx';
 import StatusPill from '../components/StatusPill.jsx';
@@ -68,7 +68,7 @@ export default function ManageResourcesPage({
                       </div>
                     </div>
                   </td>
-                  <td>{CATEGORIES[r.category]?.single || r.category}</td>
+                  <td>{categoryLabel(r.category)}</td>
                   <td>
                     <strong className="cell-strong">{r.room}</strong>
                     <small className="muted">{r.building}</small>
