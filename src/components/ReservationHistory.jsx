@@ -10,7 +10,12 @@ import {
 const PAGE_SIZE = 4;
 
 // Secțiunea „Istoric”: rezervările finalizate, respinse sau anulate.
-export default function ReservationHistory({items, onTodo}) {
+export default function ReservationHistory({
+  items,
+  onDetails,
+  onRebook,
+  onExport,
+}) {
   const [page, setPage] = useState(1);
   const pages = Math.max(1, Math.ceil(items.length / PAGE_SIZE));
   const current = Math.min(page, pages);
@@ -24,8 +29,11 @@ export default function ReservationHistory({items, onTodo}) {
           Istoric{' '}
           <small className="muted">rezervări finalizate sau respinse</small>
         </h2>
-        {/* TODO (coleg): exportul listei `items` într-un fișier .csv. */}
-        <button className="link" onClick={() => onTodo('Exportă CSV')}>
+        <button
+          className="link"
+          disabled={items.length === 0}
+          onClick={() => onExport(items)}
+        >
           Exportă CSV
         </button>
       </div>
@@ -66,18 +74,10 @@ export default function ReservationHistory({items, onTodo}) {
                   <td className="muted">{r.decisionReason || '—'}</td>
                   <td>
                     <div className="row-actions">
-                      <button
-                        className="link"
-                        onClick={() => onTodo('Detalii')}
-                      >
+                      <button className="link" onClick={() => onDetails(r)}>
                         Detalii
                       </button>
-                      {/* TODO (coleg, KAN-31): deschide formularul de
-                          rezervare cu aceeași resursă. */}
-                      <button
-                        className="link"
-                        onClick={() => onTodo('Rezervă din nou')}
-                      >
+                      <button className="link" onClick={() => onRebook(r)}>
                         Rezervă din nou
                       </button>
                     </div>

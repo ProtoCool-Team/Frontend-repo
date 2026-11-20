@@ -42,7 +42,8 @@ export default function UpcomingReservationCard({
   reservation: r,
   now,
   onCancel,
-  onTodo,
+  onDetails,
+  onExtend,
 }) {
   return (
     <article className={`rs-card rs-border-${r.shownStatus}`}>
@@ -69,18 +70,13 @@ export default function UpcomingReservationCard({
         <StatusNote r={r} now={now} />
       </div>
       <div className="row-actions">
-        {/* TODO (coleg): fereastra „Detalii” cu toate datele rezervării. */}
-        <button
-          className="btn btn-outline btn-sm"
-          onClick={() => onTodo('Detalii')}
-        >
+        <button className="btn btn-outline btn-sm" onClick={() => onDetails(r)}>
           Detalii
         </button>
         {r.shownStatus === 'ACTIVE' ? (
-          // TODO (coleg): „Prelungește” – rută nouă în backend + formular.
           <button
             className="btn btn-primary btn-sm"
-            onClick={() => onTodo('Prelungește')}
+            onClick={() => onExtend(r)}
           >
             Prelungește
           </button>

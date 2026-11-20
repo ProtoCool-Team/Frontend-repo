@@ -169,6 +169,14 @@ export default function App() {
             if (p === 'reserve') setReserveId(null); // fără resursă aleasă
             navigate(p);
           }}
+          onRebook={(r) => {
+            // Mock-ul vechi nu are resourceId; atunci căutăm după nume.
+            const match = resources.find(
+              (x) => x.id === r.resourceId || x.name === r.resourceName,
+            );
+            setReserveId(match ? match.id : null);
+            navigate('reserve');
+          }}
           notify={notify}
         />
       )}
