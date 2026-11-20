@@ -1,6 +1,8 @@
 // Apelurile pentru pagina „Rezervările mele” (KAN-32).
 // Dacă VITE_USE_MOCK=true, se folosesc câteva rezervări de test.
 import {CATEGORY_FROM_API, request} from './resources.js';
+import {mockBusy} from './mockBusy.js';
+import {blocking, overlaps} from '../reserveRules.js';
 
 const USE_MOCK = import.meta.env.VITE_USE_MOCK === 'true';
 
@@ -44,6 +46,33 @@ const realApi = {
       await request(`/me/reservations/${id}/cancel`, {
         method: 'PATCH',
         headers: HEADERS,
+      }),
+    ),
+  // Ecranul „Rezervare”. TODO (backend): de confirmat adresele și câmpurile.
+  // Ocuparea unei resurse între două date (rezervările tuturor).
+  getForResource: async (resource, from, to) => {
+    const q = `?from=${from.toISOString()}&to=${to.toISOString()}`;
+    const rows = await request(`/resources/${resource.id}/reservations${q}`, {
+      headers: HEADERS,
+    });
+    return rows.map((r) => ({
+      start: new Date(r.start_time),
+      end: new Date(r.end_time),
+      status: r.status,
+      mine: Boolean(r.is_mine),
+    }));
+  },
+  create: async ({resource, start, end, purpose}) =>
+    fromBackend(
+      await request('/me/reservations', {
+        method: 'POST',
+        headers: HEADERS,
+        body: JSON.stringify({
+          resource_id: resource.id,
+          start_time: start.toISOString(),
+          end_time: end.toISOString(),
+          purpose: purpose || null,
+        }),
       }),
     ),
 };
@@ -123,6 +152,36 @@ const mockApi = {
       r.id === id ? {...r, status: 'CANCELLED', canCancel: false} : r,
     );
     return wait(mockData.find((r) => r.id === id));
+  },
+  getForResource: (resource, from, to) => {
+    const mine = mockData
+      .filter((r) => r.resourceId === resource.id)
+      .map((r) => ({start: r.start, end: r.end, status: r.status, mine: true}));
+    return wait([...mockBusy(resource, from, to), ...mine]);
+  },
+  create: async ({resource, start, end, purpose}) => {
+    const taken = await mockApi.getForResource(resource, start, end);
+    if (blocking(taken).some((b) => overlaps({start, end}, b))) {
+      throw new Error('Intervalul se suprapune cu o rezervare existentă.');
+    }
+    const item = {
+      id: `rv-${Date.now()}`,
+      resourceId: resource.id,
+      resourceName: resource.name,
+      category: resource.category,
+      building: resource.building,
+      room: resource.room,
+      start,
+      end,
+      purpose: purpose || '',
+      status: resource.requiresApproval ? 'PENDING' : 'APPROVED',
+      decisionReason: null,
+      canCancel: true,
+      requiresApproval: resource.requiresApproval,
+      responsibleName: null,
+    };
+    mockData = [item, ...mockData];
+    return wait(item);
   },
 };
 

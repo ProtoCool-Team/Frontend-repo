@@ -95,7 +95,7 @@ export default function MyReservationsPage({onNavigate, notify}) {
         <div className="rs-head-actions">
           <button
             className="btn btn-primary btn-lg"
-            onClick={() => onNavigate('catalog')}
+            onClick={() => onNavigate('reserve')}
           >
             <Icon name="plus" size={16} />
             Rezervare nouă

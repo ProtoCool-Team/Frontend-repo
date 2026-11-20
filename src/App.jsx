@@ -7,8 +7,16 @@ import CatalogPage from './pages/CatalogPage.jsx';
 import ManageResourcesPage from './pages/ManageResourcesPage.jsx';
 import MyReservationsPage from './pages/MyReservationsPage.jsx';
 import PlaceholderPage from './pages/PlaceholderPage.jsx';
+import ReservePage from './pages/ReservePage.jsx';
 
-const PAGES = ['catalog', 'calendar', 'reservations', 'teams', 'admin'];
+const PAGES = [
+  'catalog',
+  'calendar',
+  'reservations',
+  'teams',
+  'admin',
+  'reserve',
+];
 const pageFromHash = () => {
   const h = window.location.hash.slice(1);
   return PAGES.includes(h) ? h : 'catalog';
@@ -25,6 +33,7 @@ export default function App() {
   const [editing, setEditing] = useState(null); // null | {} | resursă
   const [deleting, setDeleting] = useState(null);
   const [serverErrors, setServerErrors] = useState({});
+  const [reserveId, setReserveId] = useState(null); // resursa de rezervat
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -102,7 +111,7 @@ export default function App() {
   return (
     <>
       <Header
-        page={page}
+        page={page === 'reserve' ? 'catalog' : page}
         onNavigate={navigate}
         search={search}
         onSearch={setSearch}
@@ -133,13 +142,10 @@ export default function App() {
           loading={loading}
           search={search}
           onSearch={setSearch}
-          onReserve={(r) =>
-            notify(
-              `Rezervarea pentru „${r.name}” va fi disponibilă în ` +
-                'următoarea etapă a proiectului.',
-              'info',
-            )
-          }
+          onReserve={(r) => {
+            setReserveId(r.id);
+            navigate('reserve');
+          }}
         />
       )}
       {page === 'admin' && (
@@ -158,7 +164,22 @@ export default function App() {
         />
       )}
       {page === 'reservations' && (
-        <MyReservationsPage onNavigate={navigate} notify={notify} />
+        <MyReservationsPage
+          onNavigate={(p) => {
+            if (p === 'reserve') setReserveId(null); // fără resursă aleasă
+            navigate(p);
+          }}
+          notify={notify}
+        />
+      )}
+      {page === 'reserve' && (
+        <ReservePage
+          resources={resources}
+          resourceId={reserveId}
+          onResource={setReserveId}
+          onNavigate={navigate}
+          notify={notify}
+        />
       )}
       {['calendar', 'teams'].includes(page) && (
         <PlaceholderPage page={page} onNavigate={navigate} />
