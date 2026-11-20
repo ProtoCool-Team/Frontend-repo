@@ -24,7 +24,7 @@ export const SORTS = {
   },
 };
 
-export const EMPTY_FILTERS = {statuses: [], categories: []};
+export const EMPTY_FILTERS = {statuses: [], categories: [], from: '', to: ''};
 
 // Istoric = rezervările încheiate sau care nu mai au loc.
 const CLOSED = ['REJECTED', 'CANCELLED', 'COMPLETED', 'EXPIRED'];
@@ -49,7 +49,18 @@ function matchesSearch(r, search) {
     .toLowerCase()
     .includes(q);
 }
-
+// Perioada aleasă în filtre („De la” / „Până la”, zile întregi).
+// O rezervare intră în perioadă dacă se suprapune cu ea, chiar și parțial.
+function matchesPeriod(r, from, to) {
+  if (from && r.end <= new Date(`${from}T00:00`)) return false;
+  if (to) {
+    // Începutul zilei de după „Până la”, ca să includem toată ziua aleasă.
+    const nextDay = new Date(`${to}T00:00`);
+    nextDay.setDate(nextDay.getDate() + 1);
+    if (r.start >= nextDay) return false;
+  }
+  return true;
+}
 // Lista vizibilă: fila + filtrele din stânga + căutarea, apoi sortarea.
 export function applyFilters(items, {tab, filters, search, sort}) {
   return items
@@ -60,6 +71,7 @@ export function applyFilters(items, {tab, filters, search, sort}) {
           filters.statuses.includes(r.shownStatus)) &&
         (!filters.categories.length ||
           filters.categories.includes(r.category)) &&
+        matchesPeriod(r, filters.from, filters.to) &&
         matchesSearch(r, search),
     )
     .sort(SORTS[sort].compare);
