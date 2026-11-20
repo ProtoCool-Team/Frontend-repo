@@ -126,6 +126,32 @@ export function Icon({name, size = 18}) {
           <path d="m5 12 5 5 9-10" />
         </svg>
       );
+    case 'mail':
+      return (
+        <svg {...p}>
+          <rect x="3" y="5" width="18" height="14" rx="2" />
+          <path d="m3 7 9 6 9-6" />
+        </svg>
+      );
+    case 'institution':
+      return (
+        <svg {...p}>
+          <path d="M3 10 12 4l9 6M5 10v9M19 10v9M3 20h18M10 20v-5h4v5" />
+        </svg>
+      );
+    case 'arrowRight':
+      return (
+        <svg {...p}>
+          <path d="M5 12h14M13 6l6 6-6 6" />
+        </svg>
+      );
+    case 'alert':
+      return (
+        <svg {...p}>
+          <circle cx="12" cy="12" r="9" />
+          <path d="M12 7v6M12 16.5v.5" />
+        </svg>
+      );
     case 'logo':
       return (
         <svg {...p}>
