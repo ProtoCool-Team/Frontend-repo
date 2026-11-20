@@ -897,3 +897,41 @@ h1 {
     align-items: flex-start;
   }
 }
+
+/* ---------- Meniul contului (avatar) ---------- */
+.account {
+  position: relative;
+}
+.account .avatar {
+  border: 0;
+  color: #fff;
+}
+.account-menu {
+  position: absolute;
+  right: 0;
+  top: calc(100% + 8px);
+  min-width: 220px;
+  background: var(--surface);
+  color: var(--text);
+  border-radius: 10px;
+  box-shadow: 0 10px 30px rgb(15 23 42 / 0.2);
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  z-index: 30;
+}
+.account-menu small {
+  color: var(--muted);
+  margin-bottom: 10px;
+  word-break: break-all;
+}
+.account-menu button {
+  text-align: left;
+  background: none;
+  border: 0;
+  border-top: 1px solid var(--line);
+  padding: 10px 0 0;
+  color: var(--red);
+  font-weight: 600;
+}
