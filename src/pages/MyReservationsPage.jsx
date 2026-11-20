@@ -2,6 +2,9 @@ import {useCallback, useEffect, useMemo, useState} from 'react';
 import {reservationsApi} from '../api/reservations.js';
 import {Icon} from '../components/Icons.jsx';
 import ConfirmCancel from '../components/ConfirmCancel.jsx';
+import ConfirmExtend from '../components/ConfirmExtend.jsx';
+import ReservationDetails from '../components/ReservationDetails.jsx';
+import {downloadCsv} from '../exportCsv.js';
 import ReservationFilters from '../components/ReservationFilters.jsx';
 import ReservationHistory from '../components/ReservationHistory.jsx';
 import ReservationSidebar from '../components/ReservationSidebar.jsx';
@@ -21,7 +24,7 @@ import '../reservations.css';
 import '../reservation-card.css';
 
 // Pagina „Rezervările mele” (KAN-32), după prototipul din Figma.
-export default function MyReservationsPage({onNavigate, notify}) {
+export default function MyReservationsPage({onNavigate, onRebook, notify}) {
   const [raw, setRaw] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -32,6 +35,8 @@ export default function MyReservationsPage({onNavigate, notify}) {
   const [search, setSearch] = useState('');
   const [sort, setSort] = useState('date');
   const [cancelling, setCancelling] = useState(null);
+  const [details, setDetails] = useState(null);
+  const [extending, setExtending] = useState(null);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -65,8 +70,17 @@ export default function MyReservationsPage({onNavigate, notify}) {
   const history = visible.filter(isHistory);
   if (sort === 'date') history.reverse();
 
-  const onTodo = (feature) =>
-    notify(`„${feature}” va fi implementat de echipă în curând.`, 'info');
+  async function handleExtend(newEnd) {
+    const r = extending;
+    try {
+      await reservationsApi.extend(r, newEnd);
+      notify(`Rezervarea pentru „${r.resourceName}” a fost prelungită.`);
+      load();
+    } catch (e) {
+      notify(`Nu am putut prelungi rezervarea: ${e.message}`, 'error');
+    }
+    setExtending(null);
+  }
 
   async function handleCancel() {
     const r = cancelling;
@@ -163,12 +177,18 @@ export default function MyReservationsPage({onNavigate, notify}) {
                       reservation={r}
                       now={now}
                       onCancel={setCancelling}
-                      onTodo={onTodo}
+                      onDetails={setDetails}
+                      onExtend={setExtending}
                     />
                   ))
                 )}
               </section>
-              <ReservationHistory items={history} onTodo={onTodo} />
+              <ReservationHistory
+                items={history}
+                onDetails={setDetails}
+                onRebook={onRebook}
+                onExport={(list) => downloadCsv(list)}
+              />
             </>
           )}
         </div>
@@ -176,6 +196,19 @@ export default function MyReservationsPage({onNavigate, notify}) {
         <ReservationSidebar />
       </div>
 
+      {details && (
+        <ReservationDetails
+          reservation={details}
+          onClose={() => setDetails(null)}
+        />
+      )}
+      {extending && (
+        <ConfirmExtend
+          reservation={extending}
+          onConfirm={handleExtend}
+          onClose={() => setExtending(null)}
+        />
+      )}
       {cancelling && (
         <ConfirmCancel
           reservation={cancelling}

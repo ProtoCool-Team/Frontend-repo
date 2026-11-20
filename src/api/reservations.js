@@ -62,6 +62,15 @@ const realApi = {
       mine: Boolean(r.is_mine),
     }));
   },
+  // „Prelungește”. TODO (backend): de confirmat ruta.
+  extend: async (r, end) =>
+    fromBackend(
+      await request(`/me/reservations/${r.id}/extend`, {
+        method: 'PATCH',
+        headers: HEADERS,
+        body: JSON.stringify({end_time: end.toISOString()}),
+      }),
+    ),
   create: async ({resource, start, end, purpose}) =>
     fromBackend(
       await request('/me/reservations', {
@@ -158,6 +167,17 @@ const mockApi = {
       .filter((r) => r.resourceId === resource.id)
       .map((r) => ({start: r.start, end: r.end, status: r.status, mine: true}));
     return wait([...mockBusy(resource, from, to), ...mine]);
+  },
+  extend: async (r, end) => {
+    const resource = {id: r.resourceId ?? r.resourceName};
+    const taken = (await mockApi.getForResource(resource, r.end, end)).filter(
+      (b) => !b.mine,
+    );
+    if (blocking(taken).some((b) => overlaps({start: r.end, end}, b))) {
+      throw new Error('Ora următoare este deja rezervată de altcineva.');
+    }
+    mockData = mockData.map((x) => (x.id === r.id ? {...x, end} : x));
+    return wait(mockData.find((x) => x.id === r.id));
   },
   create: async ({resource, start, end, purpose}) => {
     const taken = await mockApi.getForResource(resource, start, end);
