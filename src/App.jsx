@@ -5,6 +5,7 @@ import ResourceFormModal from './components/ResourceFormModal.jsx';
 import ConfirmDelete from './components/ConfirmDelete.jsx';
 import CatalogPage from './pages/CatalogPage.jsx';
 import ManageResourcesPage from './pages/ManageResourcesPage.jsx';
+import MyReservationsPage from './pages/MyReservationsPage.jsx';
 import PlaceholderPage from './pages/PlaceholderPage.jsx';
 
 const PAGES = ['catalog', 'calendar', 'reservations', 'teams', 'admin'];
@@ -156,7 +157,10 @@ export default function App() {
           onDelete={setDeleting}
         />
       )}
-      {['calendar', 'reservations', 'teams'].includes(page) && (
+      {page === 'reservations' && (
+        <MyReservationsPage onNavigate={navigate} notify={notify} />
+      )}
+      {['calendar', 'teams'].includes(page) && (
         <PlaceholderPage page={page} onNavigate={navigate} />
       )}
 

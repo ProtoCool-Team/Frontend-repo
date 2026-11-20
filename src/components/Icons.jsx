@@ -114,6 +114,18 @@ export function Icon({name, size = 18}) {
           <path d="M6 6l12 12M18 6 6 18" />
         </svg>
       );
+    case 'play':
+      return (
+        <svg {...p}>
+          <path d="m8 5 11 7-11 7z" />
+        </svg>
+      );
+    case 'check':
+      return (
+        <svg {...p}>
+          <path d="m5 12 5 5 9-10" />
+        </svg>
+      );
     case 'logo':
       return (
         <svg {...p}>
