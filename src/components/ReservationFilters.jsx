@@ -1,11 +1,6 @@
 import {CATEGORIES} from '../constants.js';
 import {FILTER_STATUSES} from '../reservationStatus.js';
-
-function toggle(list, value) {
-  return list.includes(value)
-    ? list.filter((v) => v !== value)
-    : [...list, value];
-}
+import {toggle} from '../utils.js';
 
 function CheckGroup({legend, options, selected, counts, onToggle}) {
   return (

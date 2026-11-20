@@ -1,11 +1,6 @@
 import {CATEGORIES, STATES} from '../constants.js';
 import {Icon} from './Icons.jsx';
-
-function toggle(list, value) {
-  return list.includes(value)
-    ? list.filter((v) => v !== value)
-    : [...list, value];
-}
+import {toggle} from '../utils.js';
 
 export default function FiltersPanel({
   filters,
