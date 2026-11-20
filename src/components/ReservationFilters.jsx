@@ -62,31 +62,30 @@ export default function ReservationFilters({
           onChange({...filters, categories: toggle(filters.categories, key)})
         }
       />
-      {
-        <fieldset>
-          <legend>Perioadă</legend>
-          <div className="period">
-            <label>
-              <span>De la</span>
-              <input
-                type="date"
-                value={filters.from}
-                max={filters.to || undefined}
-                onChange={(e) => onChange({...filters, from: e.target.value})}
-              />
-            </label>
-            <label>
-              <span>Până la</span>
-              <input
-                type="date"
-                value={filters.to}
-                min={filters.from || undefined}
-                onChange={(e) => onChange({...filters, to: e.target.value})}
-              />
-            </label>
-          </div>
-        </fieldset>
-      }
+
+      <fieldset>
+        <legend>Perioadă</legend>
+        <div className="period">
+          <label>
+            <span>De la</span>
+            <input
+              type="date"
+              value={filters.from}
+              max={filters.to || undefined}
+              onChange={(e) => onChange({...filters, from: e.target.value})}
+            />
+          </label>
+          <label>
+            <span>Până la</span>
+            <input
+              type="date"
+              value={filters.to}
+              min={filters.from || undefined}
+              onChange={(e) => onChange({...filters, to: e.target.value})}
+            />
+          </label>
+        </div>
+      </fieldset>
     </aside>
   );
 }

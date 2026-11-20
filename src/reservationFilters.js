@@ -53,7 +53,12 @@ function matchesSearch(r, search) {
 // O rezervare intră în perioadă dacă se suprapune cu ea, chiar și parțial.
 function matchesPeriod(r, from, to) {
   if (from && r.end <= new Date(`${from}T00:00`)) return false;
-  if (to && r.start >= new Date(`${to}T23:59:59`)) return false;
+  if (to) {
+    // Începutul zilei de după „Până la”, ca să includem toată ziua aleasă.
+    const nextDay = new Date(`${to}T00:00`);
+    nextDay.setDate(nextDay.getDate() + 1);
+    if (r.start >= nextDay) return false;
+  }
   return true;
 }
 // Lista vizibilă: fila + filtrele din stânga + căutarea, apoi sortarea.
