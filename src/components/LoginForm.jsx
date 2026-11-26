@@ -5,7 +5,7 @@ import {Icon} from './Icons.jsx';
 const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 // Cardul „Autentificare” din dreapta paginii de Login.
-export default function LoginForm({onLogin}) {
+export default function LoginForm({onLogin, onRegister}) {
   const [identifier, setIdentifier] = useState('');
   const [password, setPassword] = useState('');
   const [remember, setRemember] = useState(false);
@@ -17,21 +17,24 @@ export default function LoginForm({onLogin}) {
   function validate() {
     const e = {};
     const id = identifier.trim();
-    if (!id) e.identifier = 'Completează emailul sau numele de utilizator.';
-    else if (id.includes('@') && !EMAIL.test(id)) {
-      e.identifier = 'Adresa de email nu este validă.';
-    }
+    if (!id) e.identifier = 'Completează emailul universitar.';
+    else if (!EMAIL.test(id)) e.identifier = 'Adresa de email nu este validă.';
     if (!password) e.password = 'Completează parola.';
     setErrors(e);
     return Object.keys(e).length === 0;
   }
 
-  function handleSubmit(e) {
+  async function handleSubmit(e) {
     e.preventDefault();
     if (!validate()) return;
     setBusy(true);
-    // Simulăm un răspuns de la server, până există login în backend.
-    setTimeout(() => onLogin(login(identifier, remember)), 400);
+    setInfo('');
+    try {
+      onLogin(await login(identifier.trim(), password, remember));
+    } catch (err) {
+      setErrors({form: err.message});
+      setBusy(false);
+    }
   }
 
   const soon = (what) => setInfo(`${what} va fi disponibil în curând.`);
@@ -63,13 +66,14 @@ export default function LoginForm({onLogin}) {
 
       <form onSubmit={handleSubmit} noValidate>
         <label className="login-field">
-          <span>Email universitar sau nume utilizator</span>
+          <span>Email universitar</span>
           <span className="login-input">
             <Icon name="mail" size={18} />
             <input
               value={identifier}
               onChange={(e) => setIdentifier(e.target.value)}
               placeholder="nume.prenume@universitate.ro"
+              type="email"
               autoComplete="username"
               aria-invalid={Boolean(errors.identifier)}
             />
@@ -121,6 +125,12 @@ export default function LoginForm({onLogin}) {
           </button>
         </div>
 
+        {errors.form && (
+          <p className="login-error" role="alert">
+            {errors.form}
+          </p>
+        )}
+
         <button type="submit" className="login-submit" disabled={busy}>
           {busy ? 'Se verifică…' : 'Autentificare'}
           {!busy && <Icon name="arrowRight" size={18} />}
@@ -135,11 +145,7 @@ export default function LoginForm({onLogin}) {
 
       <p className="login-signup">
         Nu ai cont încă?{' '}
-        <button
-          type="button"
-          className="link"
-          onClick={() => soon('Crearea contului')}
-        >
+        <button type="button" className="link" onClick={onRegister}>
           Creează cont
         </button>
       </p>

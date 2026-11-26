@@ -1,0 +1,14 @@
+/* ---------- Creează cont + erori de login (KAN-28) ---------- */
+.register-form {
+  display: grid;
+  gap: 2px;
+}
+.login-error {
+  margin: 4px 0 12px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  color: #b91c1c;
+  font-size: 13px;
+}
