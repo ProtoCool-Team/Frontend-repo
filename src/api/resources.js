@@ -94,6 +94,7 @@ export async function request(path, options = {}) {
       // răspuns fără JSON
     }
     const err = new Error(errorMessage(body, res.status));
+    err.status = res.status;
     err.fieldErrors = Array.isArray(body.errors) ? {} : body.errors || {};
     throw err;
   }

@@ -6,7 +6,12 @@ import Modal from '../components/Modal.jsx';
 
 // KAN-20: administratorul vede conturile și schimbă rolul lor
 // (student / cercetător ↔ cadru didactic / administrator).
-export default function ManageUsersPage({currentUserId, onNavigate, notify}) {
+export default function ManageUsersPage({
+  currentUserId,
+  onNavigate,
+  notify,
+  onRoleDenied,
+}) {
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -20,6 +25,7 @@ export default function ManageUsersPage({currentUserId, onNavigate, notify}) {
       setUsers(await usersApi.getAll());
     } catch (e) {
       setError(`Nu am putut încărca utilizatorii (${e.message}).`);
+      if (e.status === 403) onRoleDenied?.();
     } finally {
       setLoading(false);
     }
@@ -39,6 +45,7 @@ export default function ManageUsersPage({currentUserId, onNavigate, notify}) {
       setChanging(null);
     } catch (e) {
       notify(e.message, 'error');
+      if (e.status === 403) onRoleDenied?.();
     } finally {
       setSaving(false);
     }

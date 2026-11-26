@@ -92,13 +92,14 @@ export async function login(email, password, remember) {
   let session;
   if (USE_MOCK) {
     const name = nameFromEmail(email);
-    // În modul mock, contul de test vede tot, inclusiv Administrare.
+    // În modul mock: un email cu „student” e cercetător, restul
+    // administratori (ca să se poată testa ambele roluri fără backend).
     session = {
       token: null,
       name,
       initials: initialsOf(name),
       email,
-      role: ROLES.ADMINISTRATOR,
+      role: /student/i.test(email) ? ROLES.RESEARCHER : ROLES.ADMINISTRATOR,
     };
   } else {
     session = toSession(

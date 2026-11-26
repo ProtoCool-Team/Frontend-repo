@@ -27,7 +27,7 @@ const pageFromHash = () => {
   return PAGES.includes(h) ? h : 'catalog';
 };
 
-export default function App({user}) {
+export default function App({user, onRoleDenied}) {
   const admin = isAdmin(user);
   const [hashPage, setPage] = useState(pageFromHash);
   // Un cercetător care deschide #admin vede catalogul.
@@ -84,6 +84,12 @@ export default function App({user}) {
     setTimeout(() => setToast(null), 3200);
   }
 
+  // 403 = rolul s-a schimbat între timp: recitim contul, ca meniul să fie
+  // cel corect (KAN-20).
+  function checkDenied(e) {
+    if (e.status === 403) onRoleDenied?.();
+  }
+
   async function handleSave(data) {
     setServerErrors({});
     try {
@@ -101,6 +107,7 @@ export default function App({user}) {
     } catch (e) {
       setServerErrors(e.fieldErrors || {});
       notify(e.message, 'error');
+      checkDenied(e);
     }
   }
 
@@ -113,6 +120,7 @@ export default function App({user}) {
       load();
     } catch (e) {
       notify(`Nu am putut șterge resursa: ${e.message}`, 'error');
+      checkDenied(e);
     }
   }
 
@@ -180,6 +188,7 @@ export default function App({user}) {
           currentUserId={user?.id}
           onNavigate={navigate}
           notify={notify}
+          onRoleDenied={onRoleDenied}
         />
       )}
       {page === 'reservations' && (

@@ -1,5 +1,6 @@
-import {useEffect, useState} from 'react';
+import {useCallback, useEffect, useState} from 'react';
 import {getCurrentUser, refreshUser} from './auth.js';
+import {clearSession} from './session.js';
 import App from './App.jsx';
 import LoginPage from './pages/LoginPage.jsx';
 
@@ -9,17 +10,34 @@ export default function AuthGate() {
   const [user, setUser] = useState(getCurrentUser);
   const loggedIn = Boolean(user);
 
-  // KAN-20: la pornire recitim contul de la backend, ca rolul (și deci
-  // meniul Administrare) să fie cel actual. La token expirat, request()
-  // ne trimite înapoi la Login.
-  useEffect(() => {
-    if (!loggedIn) return;
+  // KAN-20: recitim contul de la backend, ca rolul (și deci meniul
+  // Administrare) să fie cel actual.
+  const refresh = useCallback(() => {
     refreshUser()
       .then((fresh) => fresh && setUser(fresh))
-      .catch(() => {
-        // backend oprit: păstrăm datele salvate; paginile arată eroarea
+      .catch((err) => {
+        // Token expirat sau cont șters: înapoi la Login. (request() nu face
+        // asta singur pentru adresele /auth/...)
+        if (err.status === 401) {
+          clearSession();
+          setUser(null);
+        }
+        // Altfel (ex. backend oprit) păstrăm datele salvate.
       });
-  }, [loggedIn]);
+  }, []);
 
-  return user ? <App user={user} /> : <LoginPage onLogin={setUser} />;
+  // La pornire și de fiecare dată când utilizatorul revine în fereastră
+  // (ex. un administrator i-a schimbat rolul între timp).
+  useEffect(() => {
+    if (!loggedIn) return undefined;
+    refresh();
+    window.addEventListener('focus', refresh);
+    return () => window.removeEventListener('focus', refresh);
+  }, [loggedIn, refresh]);
+
+  return user ? (
+    <App user={user} onRoleDenied={refresh} />
+  ) : (
+    <LoginPage onLogin={setUser} />
+  );
 }

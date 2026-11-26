@@ -64,7 +64,10 @@ permite CORS pentru http://localhost:5173.
   cel actual. Backend-ul verifică oricum rolul la fiecare cerere.
 - O sesiune salvată fără token (de la vechiul login simulat) e ștearsă și
   apare pagina de Login.
-- În modul mock, contul de test are rolul de administrator.
+- La un răspuns 403 sau când revii în fereastră, contul se recitește, deci
+  o schimbare de rol se vede fără reîncărcarea paginii.
+- În modul mock, un email care conține „student” intră ca cercetător; orice
+  alt email intră ca administrator.
 
 ## Rezervările mele (KAN-32)
 
