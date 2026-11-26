@@ -139,7 +139,10 @@ export default function ManageUsersPage({
       </div>
 
       {changing && (
-        <Modal title="Schimbă rolul" onClose={() => setChanging(null)}>
+        <Modal
+          title="Schimbă rolul"
+          onClose={() => !saving && setChanging(null)}
+        >
           <p>
             {changing.user.name} va avea rolul{' '}
             <strong>{ROLE_LABELS[changing.role]}</strong>.
@@ -153,6 +156,7 @@ export default function ManageUsersPage({
             <button
               className="btn btn-outline"
               onClick={() => setChanging(null)}
+              disabled={saving}
             >
               Renunță
             </button>

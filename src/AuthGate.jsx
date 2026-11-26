@@ -14,7 +14,7 @@ export default function AuthGate() {
   // Administrare) să fie cel actual.
   const refresh = useCallback(() => {
     refreshUser()
-      .then((fresh) => fresh && setUser(fresh))
+      .then((fresh) => setUser(fresh))
       .catch((err) => {
         // Token expirat sau cont șters: înapoi la Login. (request() nu face
         // asta singur pentru adresele /auth/...)
@@ -35,8 +35,17 @@ export default function AuthGate() {
     return () => window.removeEventListener('focus', refresh);
   }, [loggedIn, refresh]);
 
+  // Sincronizare între tab-uri când sesiunea se schimbă sau se șterge.
+  useEffect(() => {
+    const onStorage = (e) => {
+      if (e.key === 'rrm-user' || e.key === null) setUser(getCurrentUser());
+    };
+    window.addEventListener('storage', onStorage);
+    return () => window.removeEventListener('storage', onStorage);
+  }, []);
+
   return user ? (
-    <App user={user} onRoleDenied={refresh} />
+    <App key={user.id || user.email} user={user} onRoleDenied={refresh} />
   ) : (
     <LoginPage onLogin={setUser} />
   );

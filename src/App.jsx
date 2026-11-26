@@ -73,6 +73,17 @@ export default function App({user, onRoleDenied}) {
     return () => window.removeEventListener('hashchange', onHash);
   }, []);
 
+  // KAN-20: dacă rolul nu mai e administrator, închidem ferestrele de
+  // administrare și normalizăm ruta la catalog.
+  useEffect(() => {
+    if (!admin && ADMIN_PAGES.includes(hashPage)) {
+      setEditing(null);
+      setDeleting(null);
+      setPage('catalog');
+      window.history.replaceState(null, '', '#catalog');
+    }
+  }, [admin, hashPage]);
+
   function navigate(p) {
     window.location.hash = p;
     setPage(p);
@@ -215,6 +226,7 @@ export default function App({user, onRoleDenied}) {
           onResource={setReserveId}
           onNavigate={navigate}
           notify={notify}
+          onRoleDenied={onRoleDenied}
         />
       )}
       {['calendar', 'teams'].includes(page) && (

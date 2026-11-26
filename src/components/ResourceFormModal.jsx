@@ -1,4 +1,6 @@
-import {useState} from 'react';
+import {useEffect, useState} from 'react';
+import {usersApi} from '../api/users.js';
+import {ROLES} from '../auth.js';
 import {CATEGORIES, STATUS, locationLabel} from '../constants.js';
 import Field from './Field.jsx';
 import Modal from './Modal.jsx';
@@ -8,6 +10,7 @@ const EMPTY = {
   category: 'ROBOT',
   description: '',
   location_id: '',
+  responsible_admin_id: '',
   status: STATUS.AVAILABLE,
   statusNote: '',
   unavailableUntil: '',
@@ -26,14 +29,34 @@ export default function ResourceFormModal({
       ? {
           ...EMPTY,
           ...initial,
+          responsible_admin_id: initial.responsible_admin_id || '',
           statusNote: initial.statusNote || '',
           unavailableUntil: initial.unavailableUntil || '',
         }
       : EMPTY,
   );
+  const [admins, setAdmins] = useState([]);
+  const [adminsError, setAdminsError] = useState(false);
   const [errors, setErrors] = useState({});
   const [saving, setSaving] = useState(false);
   const unavailable = form.status === STATUS.UNAVAILABLE;
+
+  useEffect(() => {
+    let active = true;
+    usersApi
+      .getAll()
+      .then((list) => {
+        if (active) {
+          setAdmins(list.filter((u) => u.role === ROLES.ADMINISTRATOR));
+        }
+      })
+      .catch(() => {
+        if (active) setAdminsError(true);
+      });
+    return () => {
+      active = false;
+    };
+  }, []);
 
   // Handler de onChange care scrie valoarea controlului în form[field]
   const bindField = (field) => (e) =>
@@ -61,6 +84,7 @@ export default function ResourceFormModal({
       category: form.category,
       description: form.description.trim(),
       location_id: form.location_id,
+      responsible_admin_id: form.responsible_admin_id || null,
       status: form.status,
       requiresApproval: form.requiresApproval,
       statusNote: unavailable ? form.statusNote.trim() || null : null,
@@ -113,6 +137,29 @@ export default function ResourceFormModal({
               </option>
             ))}
           </select>
+        </Field>
+
+        <Field label="Responsabil" error={errorFor('responsible_admin_id')}>
+          <select
+            value={form.responsible_admin_id}
+            onChange={bindField('responsible_admin_id')}
+            disabled={adminsError}
+          >
+            <option value="">
+              {initial ? 'Fără responsabil' : 'Eu (implicit)'}
+            </option>
+            {admins.map((a) => (
+              <option key={a.id} value={a.id}>
+                {a.name} ({a.email})
+              </option>
+            ))}
+          </select>
+          <small className="muted">
+            {adminsError
+              ? 'Nu am putut încărca lista de administratori.'
+              : 'Responsabilul aprobă rezervările și marchează resursa ' +
+                'indisponibilă.'}
+          </small>
         </Field>
 
         <Field label="Stare">

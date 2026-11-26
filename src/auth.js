@@ -2,9 +2,11 @@
 // POST /auth/login și POST /auth/register întorc {token, user}.
 // Cu VITE_USE_MOCK=true (fără backend), login-ul rămâne simulat.
 import {request} from './api/resources.js';
+import {findMockUserByEmail} from './api/users.js';
 import {
   clearSession,
   getSession,
+  getToken,
   saveSession,
   updateSession,
 } from './session.js';
@@ -72,15 +74,22 @@ export function isAdmin(user = getCurrentUser()) {
  */
 export async function refreshUser() {
   if (USE_MOCK || !getSession()) return getSession();
-  const user = await request('/auth/me');
-  updateSession({
-    id: user.user_id,
-    name: user.full_name,
-    initials: initialsOf(user.full_name),
-    email: user.email,
-    role: user.role,
-  });
-  return getSession();
+  const startToken = getToken();
+  try {
+    const user = await request('/auth/me');
+    if (getToken() !== startToken) return getSession();
+    updateSession({
+      id: user.user_id,
+      name: user.full_name,
+      initials: initialsOf(user.full_name),
+      email: user.email,
+      role: user.role,
+    });
+    return getSession();
+  } catch (err) {
+    if (getToken() !== startToken) return getSession();
+    throw err;
+  }
 }
 
 /**
@@ -91,15 +100,21 @@ export async function refreshUser() {
 export async function login(email, password, remember) {
   let session;
   if (USE_MOCK) {
-    const name = nameFromEmail(email);
+    const mock = findMockUserByEmail(email);
+    const name = mock ? mock.name : nameFromEmail(email);
     // În modul mock: un email cu „student” e cercetător, restul
     // administratori (ca să se poată testa ambele roluri fără backend).
     session = {
       token: null,
+      id: mock ? mock.id : `u-${email}`,
       name,
       initials: initialsOf(name),
       email,
-      role: /student/i.test(email) ? ROLES.RESEARCHER : ROLES.ADMINISTRATOR,
+      role: mock
+        ? mock.role
+        : /student/i.test(email)
+          ? ROLES.RESEARCHER
+          : ROLES.ADMINISTRATOR,
     };
   } else {
     session = toSession(

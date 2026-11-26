@@ -66,8 +66,12 @@ permite CORS pentru http://localhost:5173.
   apare pagina de Login.
 - La un răspuns 403 sau când revii în fereastră, contul se recitește, deci
   o schimbare de rol se vede fără reîncărcarea paginii.
-- În modul mock, un email care conține „student” intră ca cercetător; orice
-  alt email intră ca administrator.
+- Logout-ul sau schimbarea contului într-un tab se vede și în celelalte.
+- Formularul de resursă are câmpul „Responsabil” (doar administratori);
+  la o resursă nouă, implicit responsabil ești tu.
+- În modul mock, utilizatorii de test (`src/api/users.js`) intră cu rolul
+  lor; alt email care conține „student” intră ca cercetător, restul ca
+  administrator.
 
 ## Rezervările mele (KAN-32)
 

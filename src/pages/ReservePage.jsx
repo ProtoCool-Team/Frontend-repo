@@ -21,6 +21,7 @@ export default function ReservePage({
   onResource,
   onNavigate,
   notify,
+  onRoleDenied,
 }) {
   const resource =
     resources.find((r) => String(r.id) === String(resourceId)) || null;
@@ -80,6 +81,7 @@ export default function ReservePage({
       setRefresh((n) => n + 1); // intervalul apare acum ca „Rezervarea ta”
     } catch (e) {
       notify(`Nu am putut face rezervarea: ${e.message}`, 'error');
+      if (e.status === 403) onRoleDenied?.();
       setSubmitting(false);
     }
   }
