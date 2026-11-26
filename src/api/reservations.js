@@ -6,8 +6,8 @@ import {blocking, overlaps} from '../reserveRules.js';
 
 const USE_MOCK = import.meta.env.VITE_USE_MOCK === 'true';
 
-// TEMPORAR, până avem login: utilizatorul curent. Dacă VITE_USER_ID lipsește,
-// backend-ul folosește DEMO_USER_ID din .env-ul lui.
+// Utilizatorul curent vine din token-ul de login (KAN-19, vezi request()).
+// VITE_USER_ID trimite X-User-Id doar pentru teste; token-ul are prioritate.
 const USER_ID = import.meta.env.VITE_USER_ID;
 const HEADERS = {
   'Content-Type': 'application/json',

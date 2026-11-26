@@ -1,5 +1,6 @@
 // Toate apelurile către backend sunt aici.
 // Dacă VITE_USE_MOCK=true, se folosesc date de test (fără backend).
+import {clearSession, getToken} from '../session.js';
 import {mockResources} from './mockData.js';
 
 export const BASE =
@@ -69,11 +70,22 @@ function errorMessage(body, status) {
   return body.error || body.message || `Eroare ${status} de la server`;
 }
 
+// Fiecare cerere trimite token-ul de login (KAN-19), dacă există.
 export async function request(path, options = {}) {
+  const token = getToken();
   const res = await fetch(`${BASE}${path}`, {
-    headers: {'Content-Type': 'application/json'},
     ...options,
+    headers: {
+      'Content-Type': 'application/json',
+      ...(token ? {Authorization: `Bearer ${token}`} : {}),
+      ...options.headers,
+    },
   });
+  // Sesiune expirată: înapoi la Login (nu și la login greșit, /auth/...).
+  if (res.status === 401 && token && !path.startsWith('/auth/')) {
+    clearSession();
+    window.location.reload();
+  }
   if (!res.ok) {
     let body = {};
     try {
