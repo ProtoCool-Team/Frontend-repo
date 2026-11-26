@@ -1,54 +1,90 @@
-// Autentificare simulată pentru MVP (backend-ul nu are încă login).
-// Utilizatorul se păstrează în browser: în localStorage dacă a bifat
-// „Ține-mă minte”, altfel în sessionStorage (se pierde la închiderea
-// browserului).
+// Autentificarea (KAN-28), legată de backend-ul din KAN-19:
+// POST /auth/login și POST /auth/register întorc {token, user}.
+// Cu VITE_USE_MOCK=true (fără backend), login-ul rămâne simulat.
+import {request} from './api/resources.js';
+import {clearSession, getSession, saveSession} from './session.js';
 
-const KEY = 'rrm-user';
+const USE_MOCK = import.meta.env.VITE_USE_MOCK === 'true';
 
-export function getCurrentUser() {
-  try {
-    const raw = localStorage.getItem(KEY) || sessionStorage.getItem(KEY);
-    return raw ? JSON.parse(raw) : null;
-  } catch {
-    return null;
-  }
+// „Ana Popescu” → „AP”
+function initialsOf(name) {
+  return name
+    .split(/\s+/)
+    .filter(Boolean)
+    .map((p) => p[0])
+    .join('')
+    .slice(0, 2)
+    .toUpperCase();
 }
 
-// „ana.popescu@universitate.ro” → „Ana Popescu”
-function nameFrom(identifier) {
-  const local = identifier.split('@')[0];
-  return local
+// „ana.popescu@universitate.ro” → „Ana Popescu” (doar în modul mock)
+function nameFromEmail(email) {
+  return email
+    .split('@')[0]
     .split(/[._-]+/)
     .filter(Boolean)
     .map((p) => p[0].toUpperCase() + p.slice(1))
     .join(' ');
 }
 
-export function login(identifier, remember) {
-  const name = nameFrom(identifier.trim());
-  const initials = name
-    .split(' ')
-    .map((p) => p[0])
-    .join('')
-    .slice(0, 2)
-    .toUpperCase();
-  const user = {name, initials, email: identifier.trim()};
-  const storage = remember ? localStorage : sessionStorage;
-  try {
-    storage.setItem(KEY, JSON.stringify(user));
-  } catch {
-    // browserul nu permite stocarea: utilizatorul rămâne doar până la refresh
+// Răspunsul backend-ului → ce păstrăm în browser.
+function toSession({token, user}) {
+  return {
+    token,
+    id: user.user_id,
+    name: user.full_name,
+    initials: initialsOf(user.full_name),
+    email: user.email,
+    role: user.role,
+  };
+}
+
+export function getCurrentUser() {
+  return getSession();
+}
+
+/**
+ * Autentificare cu email și parolă.
+ * @return {Promise<Object>} Utilizatorul logat.
+ * @throws {Error} Cu mesajul de la server (ex. „Email sau parolă greșită.”).
+ */
+export async function login(email, password, remember) {
+  let session;
+  if (USE_MOCK) {
+    const name = nameFromEmail(email);
+    session = {token: null, name, initials: initialsOf(name), email};
+  } else {
+    session = toSession(
+      await request('/auth/login', {
+        method: 'POST',
+        body: JSON.stringify({email, password}),
+      }),
+    );
   }
-  return user;
+  saveSession(session, remember);
+  return session;
+}
+
+/**
+ * Creează un cont nou de cercetător și îl loghează direct.
+ * @param {{full_name: string, email: string, password: string,
+ *     department: string}} data Datele din formular.
+ * @return {Promise<Object>} Utilizatorul logat.
+ */
+export async function register(data) {
+  if (USE_MOCK) return login(data.email, data.password, false);
+  const session = toSession(
+    await request('/auth/register', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }),
+  );
+  saveSession(session, false);
+  return session;
 }
 
 export function logout() {
-  try {
-    localStorage.removeItem(KEY);
-    sessionStorage.removeItem(KEY);
-  } catch {
-    // nimic de șters
-  }
+  clearSession();
   window.location.hash = '';
   window.location.reload();
 }

@@ -1,7 +1,10 @@
+import {useState} from 'react';
 import {Icon} from '../components/Icons.jsx';
 import LoginAvailability from '../components/LoginAvailability.jsx';
 import LoginForm from '../components/LoginForm.jsx';
+import RegisterForm from '../components/RegisterForm.jsx';
 import '../login.css';
+import '../register.css';
 
 const BENEFITS = [
   'Disponibilitate actualizată în timp real',
@@ -16,7 +19,9 @@ const STATS = [
 ];
 
 // Pagina de Login, după ecranul „rrm_login” din Figma.
+// Linkul „Creează cont” schimbă cardul din dreapta în formularul de cont nou.
 export default function LoginPage({onLogin}) {
+  const [mode, setMode] = useState('login');
   return (
     <div className="login-page">
       <header className="login-top">
@@ -67,7 +72,11 @@ export default function LoginPage({onLogin}) {
           </dl>
         </section>
 
-        <LoginForm onLogin={onLogin} />
+        {mode === 'login' ? (
+          <LoginForm onLogin={onLogin} onRegister={() => setMode('register')} />
+        ) : (
+          <RegisterForm onLogin={onLogin} onBack={() => setMode('login')} />
+        )}
       </main>
 
       <footer className="site-foot">

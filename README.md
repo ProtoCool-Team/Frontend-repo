@@ -38,12 +38,23 @@ permite CORS pentru http://localhost:5173.
 | GET    | /api/v1/locations                   | locațiile, pentru lista „Locație”             |
 | GET    | /api/v1/me/reservations             | rezervările mele                              |
 | PATCH  | /api/v1/me/reservations/{id}/cancel | anulează rezervarea; 409 dacă nu se mai poate |
+| POST   | /api/v1/auth/login                  | `{token, user}` (KAN-19)                      |
+| POST   | /api/v1/auth/register               | cont nou + `{token, user}` (KAN-28)           |
+
+## Login și Creează cont (KAN-28)
+
+- Login-ul cere email și parolă la backend (`src/auth.js`). Token-ul primit
+  se păstrează în browser (`src/session.js`) și se trimite la fiecare cerere
+  ca `Authorization: Bearer <token>` (`request()` din `src/api/resources.js`).
+- „Creează cont” face un cont nou de cercetător și te loghează direct.
+- Dacă sesiunea expiră (401), aplicația te întoarce la pagina de Login.
+- Cu `VITE_USE_MOCK=true`, login-ul rămâne simulat (orice email și parolă).
+- Butoanele „SSO” și „Ai uitat parola?” arată încă „în curând”.
 
 ## Rezervările mele (KAN-32)
 
-Până avem login, „eu” este utilizatorul din `DEMO_USER_ID` (în `.env`-ul
-backend-ului). Pentru alt utilizator, puneți în `.env`-ul frontend-ului
-`VITE_USER_ID=<uuid>`; se trimite ca antet `X-User-Id`.
+„Eu” este utilizatorul logat (din token). Pentru teste fără login se pot
+folosi încă `DEMO_USER_ID` (backend) sau `VITE_USER_ID` (frontend).
 
 Gata: cardurile de sumar, filtrele (status, categorie), căutarea, sortarea,
 filele, „Active și viitoare” (cu progres și anulare), „Istoric” cu paginare.
