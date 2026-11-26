@@ -38,7 +38,16 @@ export default function AuthGate() {
   // Sincronizare între tab-uri când sesiunea se schimbă sau se șterge.
   useEffect(() => {
     const onStorage = (e) => {
-      if (e.key === 'rrm-user' || e.key === null) setUser(getCurrentUser());
+      if (e.key !== 'rrm-user' && e.key !== null) return;
+      // Un tab logat fără „Ține-mă minte” are sesiunea lui (sessionStorage)
+      // și nu urmează login-urile din alte tab-uri.
+      if (
+        e.storageArea === localStorage &&
+        sessionStorage.getItem('rrm-user')
+      ) {
+        return;
+      }
+      setUser(getCurrentUser());
     };
     window.addEventListener('storage', onStorage);
     return () => window.removeEventListener('storage', onStorage);

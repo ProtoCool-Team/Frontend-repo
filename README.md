@@ -66,9 +66,11 @@ permite CORS pentru http://localhost:5173.
   apare pagina de Login.
 - La un răspuns 403 sau când revii în fereastră, contul se recitește, deci
   o schimbare de rol se vede fără reîncărcarea paginii.
-- Logout-ul sau schimbarea contului într-un tab se vede și în celelalte.
+- Logout-ul sau schimbarea contului „Ține-mă minte” într-un tab se vede și
+  în celelalte; un tab logat fără „Ține-mă minte” își păstrează contul.
 - Formularul de resursă are câmpul „Responsabil” (doar administratori);
-  la o resursă nouă, implicit responsabil ești tu.
+  la o resursă nouă, implicit responsabil ești tu; la una existentă e
+  obligatoriu.
 - În modul mock, utilizatorii de test (`src/api/users.js`) intră cu rolul
   lor; alt email care conține „student” intră ca cercetător, restul ca
   administrator.

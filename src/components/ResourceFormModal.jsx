@@ -35,7 +35,7 @@ export default function ResourceFormModal({
         }
       : EMPTY,
   );
-  const [admins, setAdmins] = useState([]);
+  const [admins, setAdmins] = useState(null); // null = se încarcă
   const [adminsError, setAdminsError] = useState(false);
   const [errors, setErrors] = useState({});
   const [saving, setSaving] = useState(false);
@@ -71,6 +71,11 @@ export default function ResourceFormModal({
     const e = {};
     if (!form.name.trim()) e.name = 'Completează denumirea resursei.';
     if (!form.location_id) e.location_id = 'Alege locația.';
+    // O resursă existentă trebuie să aibă un responsabil (la una nouă,
+    // backend-ul îl pune implicit pe cel care o creează).
+    if (initial && !form.responsible_admin_id) {
+      e.responsible_admin_id = 'Alege responsabilul.';
+    }
     setErrors(e);
     return Object.keys(e).length === 0;
   }
@@ -143,12 +148,23 @@ export default function ResourceFormModal({
           <select
             value={form.responsible_admin_id}
             onChange={bindField('responsible_admin_id')}
-            disabled={adminsError}
+            disabled={adminsError || admins === null}
           >
-            <option value="">
-              {initial ? 'Fără responsabil' : 'Eu (implicit)'}
-            </option>
-            {admins.map((a) => (
+            {initial ? (
+              <option value="" disabled>
+                Alege responsabilul…
+              </option>
+            ) : (
+              <option value="">Eu (implicit)</option>
+            )}
+            {/* Responsabilul actual, chiar dacă lista nu s-a încărcat. */}
+            {form.responsible_admin_id &&
+              !admins?.some((a) => a.id === form.responsible_admin_id) && (
+                <option value={form.responsible_admin_id}>
+                  Responsabilul actual
+                </option>
+              )}
+            {(admins || []).map((a) => (
               <option key={a.id} value={a.id}>
                 {a.name} ({a.email})
               </option>
@@ -157,8 +173,10 @@ export default function ResourceFormModal({
           <small className="muted">
             {adminsError
               ? 'Nu am putut încărca lista de administratori.'
-              : 'Responsabilul aprobă rezervările și marchează resursa ' +
-                'indisponibilă.'}
+              : admins === null
+                ? 'Se încarcă administratorii…'
+                : 'Responsabilul aprobă rezervările și marchează resursa ' +
+                  'indisponibilă.'}
           </small>
         </Field>
 

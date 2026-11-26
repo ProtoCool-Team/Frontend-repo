@@ -29,7 +29,7 @@ export default function ManageUsersPage({
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [onRoleDenied]);
 
   useEffect(() => {
     load();

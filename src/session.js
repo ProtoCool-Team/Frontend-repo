@@ -7,7 +7,9 @@ const USE_MOCK = import.meta.env.VITE_USE_MOCK === 'true';
 
 function read() {
   try {
-    const raw = localStorage.getItem(KEY) || sessionStorage.getItem(KEY);
+    // Sesiunea doar a acestui tab (sessionStorage) are prioritate: un login
+    // „Ține-mă minte” din alt tab nu schimbă contul de aici.
+    const raw = sessionStorage.getItem(KEY) || localStorage.getItem(KEY);
     return raw ? JSON.parse(raw) : null;
   } catch {
     return null;
@@ -53,14 +55,15 @@ export function saveSession(session, remember) {
 export function updateSession(changes) {
   const session = read();
   if (!session) return;
-  const remember = (() => {
-    try {
-      return localStorage.getItem(KEY) !== null;
-    } catch {
-      return false;
-    }
-  })();
-  saveSession({...session, ...changes}, remember);
+  // Scriem direct peste valoarea veche, fără s-o ștergem întâi: altfel
+  // celelalte tab-uri ar primi un eveniment „sesiune ștearsă” (AuthGate).
+  try {
+    const storage =
+      sessionStorage.getItem(KEY) !== null ? sessionStorage : localStorage;
+    storage.setItem(KEY, JSON.stringify({...session, ...changes}));
+  } catch {
+    // browserul nu permite stocarea
+  }
 }
 
 export function clearSession() {
