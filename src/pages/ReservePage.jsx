@@ -2,6 +2,7 @@ import {useEffect, useMemo, useState} from 'react';
 import {reservationsApi} from '../api/reservations.js';
 import ReserveHeader from '../components/ReserveHeader.jsx';
 import ReservePanel from '../components/ReservePanel.jsx';
+import ReservationConfirmed from '../components/ReservationConfirmed.jsx';
 import WeekCalendar from '../components/WeekCalendar.jsx';
 import {
   addDays,
@@ -31,6 +32,8 @@ export default function ReservePage({
   const [sel, setSel] = useState(null);
   const [purpose, setPurpose] = useState('');
   const [submitting, setSubmitting] = useState(false);
+  const [created, setCreated] = useState(null); // rezervarea tocmai salvată
+  const [refresh, setRefresh] = useState(0); // reîncarcă ocuparea resursei
 
   // Ocuparea resursei pentru zilele afișate.
   useEffect(() => {
@@ -46,7 +49,7 @@ export default function ReservePage({
       current = false;
     };
     // notify lipsește intenționat: e o funcție nouă la fiecare randare.
-  }, [resource, days]);
+  }, [resource, days, refresh]);
 
   const error = selectionError(sel, blocks, rules);
 
@@ -55,6 +58,12 @@ export default function ReservePage({
     if (next && !days.some((d) => +d === +startOfDay(next.start))) {
       setWeekStart(startOfDay(next.start));
     }
+  }
+
+  function newReservation() {
+    setCreated(null);
+    setSel(null);
+    setPurpose('');
   }
 
   async function confirm() {
@@ -66,12 +75,9 @@ export default function ReservePage({
         end: sel.end,
         purpose: purpose.trim(),
       });
-      notify(
-        r.status === 'PENDING'
-          ? 'Cererea a fost trimisă și așteaptă aprobarea.'
-          : 'Rezervarea a fost confirmată.',
-      );
-      onNavigate('reservations');
+      setCreated(r);
+      setSubmitting(false);
+      setRefresh((n) => n + 1); // intervalul apare acum ca „Rezervarea ta”
     } catch (e) {
       notify(`Nu am putut face rezervarea: ${e.message}`, 'error');
       setSubmitting(false);
@@ -135,6 +141,14 @@ export default function ReservePage({
             />
           </div>
         </>
+      )}
+      {created && resource && (
+        <ReservationConfirmed
+          reservation={created}
+          resource={resource}
+          onViewMine={() => onNavigate('reservations')}
+          onNewReservation={newReservation}
+        />
       )}
     </main>
   );
