@@ -1,10 +1,12 @@
 import {useCallback, useEffect, useState} from 'react';
 import {api, isMock} from './api/resources.js';
+import {isAdmin} from './auth.js';
 import Header from './components/Header.jsx';
 import ResourceFormModal from './components/ResourceFormModal.jsx';
 import ConfirmDelete from './components/ConfirmDelete.jsx';
 import CatalogPage from './pages/CatalogPage.jsx';
 import ManageResourcesPage from './pages/ManageResourcesPage.jsx';
+import ManageUsersPage from './pages/ManageUsersPage.jsx';
 import MyReservationsPage from './pages/MyReservationsPage.jsx';
 import PlaceholderPage from './pages/PlaceholderPage.jsx';
 import ReservePage from './pages/ReservePage.jsx';
@@ -15,15 +17,21 @@ const PAGES = [
   'reservations',
   'teams',
   'admin',
+  'users',
   'reserve',
 ];
+// KAN-20: paginile din Administrare, doar pentru administratori.
+const ADMIN_PAGES = ['admin', 'users'];
 const pageFromHash = () => {
   const h = window.location.hash.slice(1);
   return PAGES.includes(h) ? h : 'catalog';
 };
 
-export default function App() {
-  const [page, setPage] = useState(pageFromHash);
+export default function App({user}) {
+  const admin = isAdmin(user);
+  const [hashPage, setPage] = useState(pageFromHash);
+  // Un cercetător care deschide #admin vede catalogul.
+  const page = ADMIN_PAGES.includes(hashPage) && !admin ? 'catalog' : hashPage;
   const [resources, setResources] = useState([]);
   const [locations, setLocations] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -111,7 +119,10 @@ export default function App() {
   return (
     <>
       <Header
-        page={page === 'reserve' ? 'catalog' : page}
+        page={
+          page === 'reserve' ? 'catalog' : page === 'users' ? 'admin' : page
+        }
+        user={user}
         onNavigate={navigate}
         search={search}
         onSearch={setSearch}
@@ -161,6 +172,14 @@ export default function App() {
             setEditing(r);
           }}
           onDelete={setDeleting}
+          onNavigate={navigate}
+        />
+      )}
+      {page === 'users' && (
+        <ManageUsersPage
+          currentUserId={user?.id}
+          onNavigate={navigate}
+          notify={notify}
         />
       )}
       {page === 'reservations' && (

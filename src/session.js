@@ -3,6 +3,16 @@
 // sessionStorage (se pierde la închiderea browserului).
 
 const KEY = 'rrm-user';
+const USE_MOCK = import.meta.env.VITE_USE_MOCK === 'true';
+
+function read() {
+  try {
+    const raw = localStorage.getItem(KEY) || sessionStorage.getItem(KEY);
+    return raw ? JSON.parse(raw) : null;
+  } catch {
+    return null;
+  }
+}
 
 /**
  * Sesiunea curentă sau null dacă nu e nimeni logat.
@@ -10,12 +20,14 @@ const KEY = 'rrm-user';
  *     role: string, id: string}}
  */
 export function getSession() {
-  try {
-    const raw = localStorage.getItem(KEY) || sessionStorage.getItem(KEY);
-    return raw ? JSON.parse(raw) : null;
-  } catch {
+  const session = read();
+  // KAN-20: o sesiune fără token (de la vechiul login simulat) nu mai e
+  // valabilă cu backend-ul real: o ștergem, ca să apară pagina de Login.
+  if (session && !USE_MOCK && !session.token) {
+    clearSession();
     return null;
   }
+  return session;
 }
 
 /**
@@ -31,6 +43,24 @@ export function saveSession(session, remember) {
   } catch {
     // browserul nu permite stocarea: utilizatorul rămâne doar până la refresh
   }
+}
+
+/**
+ * Actualizează datele sesiunii curente (ex. rolul), în același loc
+ * (localStorage sau sessionStorage) unde a fost salvată.
+ * @param {Object} changes Câmpurile noi.
+ */
+export function updateSession(changes) {
+  const session = read();
+  if (!session) return;
+  const remember = (() => {
+    try {
+      return localStorage.getItem(KEY) !== null;
+    } catch {
+      return false;
+    }
+  })();
+  saveSession({...session, ...changes}, remember);
 }
 
 export function clearSession() {

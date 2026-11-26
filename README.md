@@ -40,6 +40,9 @@ permite CORS pentru http://localhost:5173.
 | PATCH  | /api/v1/me/reservations/{id}/cancel | anulează rezervarea; 409 dacă nu se mai poate |
 | POST   | /api/v1/auth/login                  | `{token, user}` (KAN-19)                      |
 | POST   | /api/v1/auth/register               | cont nou + `{token, user}` (KAN-28)           |
+| GET    | /api/v1/auth/me                     | contul logat, cu rolul actual (KAN-20)        |
+| GET    | /api/v1/users                       | utilizatorii, pentru Administrare (KAN-20)    |
+| PATCH  | /api/v1/users/{id}/role             | schimbă rolul unui utilizator (KAN-20)        |
 
 ## Login și Creează cont (KAN-28)
 
@@ -51,10 +54,23 @@ permite CORS pentru http://localhost:5173.
 - Cu `VITE_USE_MOCK=true`, login-ul rămâne simulat (orice email și parolă).
 - Butoanele „SSO” și „Ai uitat parola?” arată încă „în curând”.
 
+## Roluri (KAN-20)
+
+- `RESEARCHER` (student / cercetător) nu vede meniul „Administrare”; dacă
+  deschide `#admin` sau `#users`, ajunge în catalog.
+- `ADMINISTRATOR` (cadru didactic) vede „Administrare”, cu două secțiuni:
+  „Resurse” și „Utilizatori și roluri” (`src/pages/ManageUsersPage.jsx`).
+- La pornire, aplicația recitește contul (`GET /auth/me`), ca rolul să fie
+  cel actual. Backend-ul verifică oricum rolul la fiecare cerere.
+- O sesiune salvată fără token (de la vechiul login simulat) e ștearsă și
+  apare pagina de Login.
+- În modul mock, contul de test are rolul de administrator.
+
 ## Rezervările mele (KAN-32)
 
 „Eu” este utilizatorul logat (din token). Pentru teste fără login se pot
-folosi încă `DEMO_USER_ID` (backend) sau `VITE_USER_ID` (frontend).
+folosi `DEMO_USER_ID` (backend) sau `VITE_USER_ID` (frontend), doar dacă
+backend-ul are `ALLOW_DEMO_AUTH=true`.
 
 Gata: cardurile de sumar, filtrele (status, categorie), căutarea, sortarea,
 filele, „Active și viitoare” (cu progres și anulare), „Istoric” cu paginare.

@@ -1,5 +1,5 @@
 import {useEffect, useRef, useState} from 'react';
-import {getCurrentUser, logout} from '../auth.js';
+import {ROLE_LABELS, isAdmin, logout} from '../auth.js';
 import {Icon} from './Icons.jsx';
 
 const NAV = [
@@ -9,9 +9,11 @@ const NAV = [
   ['teams', 'Echipe'],
   ['admin', 'Administrare'],
 ];
+// KAN-20: „Administrare” apare doar pentru administratori.
+const ADMIN_ONLY = ['admin'];
 
-export default function Header({page, onNavigate, search, onSearch}) {
-  const user = getCurrentUser();
+export default function Header({page, user, onNavigate, search, onSearch}) {
+  const nav = NAV.filter(([key]) => isAdmin(user) || !ADMIN_ONLY.includes(key));
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef(null);
 
@@ -39,7 +41,7 @@ export default function Header({page, onNavigate, search, onSearch}) {
         </button>
 
         <nav className="nav" aria-label="Navigare principală">
-          {NAV.map(([key, label]) => (
+          {nav.map(([key, label]) => (
             <button
               key={key}
               className={page === key ? 'nav-link active' : 'nav-link'}
@@ -81,6 +83,7 @@ export default function Header({page, onNavigate, search, onSearch}) {
               <div className="account-menu">
                 <strong>{user?.name}</strong>
                 <small>{user?.email}</small>
+                {user?.role && <small>{ROLE_LABELS[user.role]}</small>}
                 <button onClick={logout}>Deconectare</button>
               </div>
             )}
