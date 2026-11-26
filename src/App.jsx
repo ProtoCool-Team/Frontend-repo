@@ -4,6 +4,7 @@ import {isAdmin} from './auth.js';
 import Header from './components/Header.jsx';
 import ResourceFormModal from './components/ResourceFormModal.jsx';
 import ConfirmDelete from './components/ConfirmDelete.jsx';
+import UnavailabilityModal from './components/UnavailabilityModal.jsx';
 import CatalogPage from './pages/CatalogPage.jsx';
 import ManageResourcesPage from './pages/ManageResourcesPage.jsx';
 import ManageUsersPage from './pages/ManageUsersPage.jsx';
@@ -40,6 +41,7 @@ export default function App({user, onRoleDenied}) {
   const [toast, setToast] = useState(null);
   const [editing, setEditing] = useState(null); // null | {} | resursă
   const [deleting, setDeleting] = useState(null);
+  const [unavailable, setUnavailable] = useState(null);
   const [serverErrors, setServerErrors] = useState({});
   const [reserveId, setReserveId] = useState(null); // resursa de rezervat
 
@@ -79,6 +81,7 @@ export default function App({user, onRoleDenied}) {
     if (!admin && ADMIN_PAGES.includes(hashPage)) {
       setEditing(null);
       setDeleting(null);
+      setUnavailable(null);
       setPage('catalog');
       window.history.replaceState(null, '', '#catalog');
     }
@@ -191,6 +194,7 @@ export default function App({user, onRoleDenied}) {
             setEditing(r);
           }}
           onDelete={setDeleting}
+          onUnavailability={setUnavailable}
           onNavigate={navigate}
         />
       )}
@@ -251,6 +255,15 @@ export default function App({user, onRoleDenied}) {
           resource={deleting}
           onConfirm={handleDelete}
           onClose={() => setDeleting(null)}
+        />
+      )}
+      {unavailable && (
+        <UnavailabilityModal
+          resource={unavailable}
+          onClose={() => setUnavailable(null)}
+          onChanged={load}
+          notify={notify}
+          onRoleDenied={onRoleDenied}
         />
       )}
       {toast && (

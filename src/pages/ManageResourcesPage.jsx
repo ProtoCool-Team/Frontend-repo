@@ -1,5 +1,6 @@
+import {TYPE_LABELS} from '../api/unavailability.js';
 import {categoryLabel, resourcesLabel} from '../constants.js';
-import {resourceState} from '../availability.js';
+import {formatDate, resourceState} from '../availability.js';
 import AdminTabs from '../components/AdminTabs.jsx';
 import {Icon} from '../components/Icons.jsx';
 import StatusPill from '../components/StatusPill.jsx';
@@ -10,6 +11,7 @@ export default function ManageResourcesPage({
   onAdd,
   onEdit,
   onDelete,
+  onUnavailability,
   onNavigate,
 }) {
   const sorted = [...resources].sort((a, b) =>
@@ -78,6 +80,13 @@ export default function ManageResourcesPage({
                   </td>
                   <td>
                     <StatusPill state={resourceState(r)} />
+                    {r.unavailability && (
+                      <small className="muted">
+                        {TYPE_LABELS[r.unavailability.type] || 'Indisponibil'}{' '}
+                        {formatDate(r.unavailability.start_date)} –{' '}
+                        {formatDate(r.unavailability.end_date)}
+                      </small>
+                    )}
                   </td>
                   <td>
                     {r.requiresApproval ? (
@@ -91,6 +100,12 @@ export default function ManageResourcesPage({
                   </td>
                   <td>
                     <div className="row-actions">
+                      <button
+                        className="btn btn-outline btn-sm"
+                        onClick={() => onUnavailability(r)}
+                      >
+                        Indisponibilitate
+                      </button>
                       <button
                         className="btn btn-outline btn-sm"
                         onClick={() => onEdit(r)}

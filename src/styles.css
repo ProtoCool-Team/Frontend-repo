@@ -935,3 +935,39 @@ h1 {
   color: var(--red);
   font-weight: 600;
 }
+
+/* ---------- Indisponibilitate (KAN-8) ---------- */
+.banner-warn {
+  background: #fef3c7;
+  color: #92400e;
+}
+.unav-section {
+  padding: 16px 20px 0;
+}
+.unav-heading {
+  margin: 0 0 8px;
+  font-size: 13px;
+  font-weight: 700;
+  color: #334155;
+}
+.unav-list {
+  list-style: none;
+  margin: 0 0 10px;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.unav-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+}
+.unav-item strong,
+.unav-item small {
+  display: block;
+}

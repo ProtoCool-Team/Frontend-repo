@@ -79,6 +79,16 @@ export function slotState({day, hour, blocks, sel, resource, rules, now}) {
   const slot = {start: atHour(day, hour), end: atHour(day, hour + 1)};
   if (slot.end <= now) return {kind: 'past'};
   if (resource?.status === 'UNAVAILABLE') return {kind: 'unavailable'};
+  // KAN-8: ziua cade în perioada de indisponibilitate curentă / următoare.
+  // (Toate perioadele, pentru calendar, vin în KAN-9.)
+  const period = resource?.unavailability;
+  if (period) {
+    const d = slot.start;
+    const iso = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+    if (iso >= period.start_date && iso <= period.end_date) {
+      return {kind: 'unavailable'};
+    }
+  }
   if (slot.start > addDays(startOfDay(now), rules.maxDays + 1)) {
     return {kind: 'out'};
   }

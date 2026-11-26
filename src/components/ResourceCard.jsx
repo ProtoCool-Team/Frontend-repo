@@ -1,5 +1,6 @@
+import {TYPE_LABELS} from '../api/unavailability.js';
 import {categoryLabel} from '../constants.js';
-import {nextChangeText, resourceState} from '../availability.js';
+import {formatDate, nextChangeText, resourceState} from '../availability.js';
 import {Icon} from './Icons.jsx';
 import StatusPill from './StatusPill.jsx';
 import AvailabilityBar from './AvailabilityBar.jsx';
@@ -7,6 +8,8 @@ import AvailabilityBar from './AvailabilityBar.jsx';
 export default function ResourceCard({resource, onReserve}) {
   const state = resourceState(resource);
   const unavailable = state === 'UNAVAILABLE';
+  const unav = resource.unavailability;
+  const unavLabel = unav ? TYPE_LABELS[unav.type] || 'Indisponibil' : '';
   const cover = unavailable
     ? 'cover-UNAVAILABLE'
     : `cover-${resource.category}`;
@@ -36,8 +39,17 @@ export default function ResourceCard({resource, onReserve}) {
             Necesită aprobare
           </span>
         )}
-        {unavailable && resource.statusNote && (
-          <p className="card-note">{resource.statusNote}</p>
+        {unav?.active && (
+          <p className="card-note">
+            {unavLabel}
+            {unav.details ? `: ${unav.details}` : ''}
+          </p>
+        )}
+        {!unavailable && unav && !unav.active && (
+          <small className="muted">
+            Indisponibil {formatDate(unav.start_date)} –{' '}
+            {formatDate(unav.end_date)} ({unavLabel})
+          </small>
         )}
         <AvailabilityBar resource={resource} />
       </div>

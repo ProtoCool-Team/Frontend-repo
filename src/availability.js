@@ -1,3 +1,4 @@
+import {TYPE_LABELS} from './api/unavailability.js';
 import {DAY_START, SLOT, SLOTS, STATUS} from './constants.js';
 
 // Indexul orei curente în bara 08–20 (poate fi <0 sau >=SLOTS)
@@ -7,7 +8,9 @@ export function currentSlot() {
 
 // Starea curentă a unei resurse: FREE, BUSY sau UNAVAILABLE
 export function resourceState(r) {
-  if (r.status === STATUS.UNAVAILABLE) return 'UNAVAILABLE';
+  if (r.status === STATUS.UNAVAILABLE || r.unavailability?.active) {
+    return 'UNAVAILABLE';
+  }
   const i = currentSlot();
   if (i >= 0 && i < SLOTS && r.availability?.[i] === SLOT.BUSY) {
     return 'BUSY';
@@ -25,11 +28,11 @@ export function formatDate(iso) {
 
 // Textul din subsolul cardului (ex. „Liber până la 14:00”)
 export function nextChangeText(r) {
-  if (resourceState(r) === 'UNAVAILABLE') {
-    return r.unavailableUntil
-      ? `Indisponibil până la ${formatDate(r.unavailableUntil)}`
-      : 'Indisponibil';
+  if (r.unavailability?.active) {
+    const label = TYPE_LABELS[r.unavailability.type] || 'Indisponibil';
+    return `${label} până la ${formatDate(r.unavailability.end_date)}`;
   }
+  if (r.status === STATUS.UNAVAILABLE) return 'Scos din uz';
   const slots = r.availability;
   if (!slots) return 'Liber acum';
   const now = currentSlot();
