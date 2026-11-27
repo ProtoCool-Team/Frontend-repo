@@ -1,5 +1,6 @@
 import {useEffect, useMemo, useState} from 'react';
 import {reservationsApi} from '../api/reservations.js';
+import {unavailabilityApi} from '../api/unavailability.js';
 import ReserveHeader from '../components/ReserveHeader.jsx';
 import ReservePanel from '../components/ReservePanel.jsx';
 import ReservationConfirmed from '../components/ReservationConfirmed.jsx';
@@ -7,6 +8,7 @@ import WeekCalendar from '../components/WeekCalendar.jsx';
 import {
   addDays,
   atHour,
+  currentPeriods,
   rulesFor,
   selectionError,
   startOfDay,
@@ -29,6 +31,9 @@ export default function ReservePage({
   const [weekStart, setWeekStart] = useState(() => startOfDay(new Date()));
   const days = useMemo(() => workingDays(weekStart, 5), [weekStart]);
   const [blocks, setBlocks] = useState([]);
+  // Perioadele încărcate, cu id-ul resursei căreia îi aparțin.
+  const [loadedPeriods, setLoadedPeriods] = useState(null);
+  const [periodsLoading, setPeriodsLoading] = useState(false);
   const [loading, setLoading] = useState(false);
   const [sel, setSel] = useState(null);
   const [purpose, setPurpose] = useState('');
@@ -52,7 +57,40 @@ export default function ReservePage({
     // notify lipsește intenționat: e o funcție nouă la fiecare randare.
   }, [resource, days, refresh]);
 
-  const error = selectionError(sel, blocks, rules, resource);
+  // KAN-9: toate perioadele curente și viitoare de indisponibilitate.
+  // Se reîncarcă și când catalogul se reîncarcă (obiectul resource se schimbă).
+  useEffect(() => {
+    if (!resource) return undefined;
+    let current = true;
+    setPeriodsLoading(true);
+    unavailabilityApi
+      .list(resource.id)
+      .then(
+        (list) => current && setLoadedPeriods({resourceId: resource.id, list}),
+      )
+      .catch(
+        (e) =>
+          current &&
+          notify(
+            `Nu am putut încărca perioadele de indisponibilitate: ${e.message}`,
+            'error',
+          ),
+      )
+      .finally(() => current && setPeriodsLoading(false));
+    return () => {
+      current = false;
+    };
+    // notify lipsește intenționat: e o funcție nouă la fiecare randare.
+  }, [resource, refresh]);
+
+  // Până sosește lista (sau dacă cererea eșuează) folosim perioada din
+  // catalog; lista altei resurse nu se folosește niciodată.
+  const periods =
+    loadedPeriods && String(loadedPeriods.resourceId) === String(resource?.id)
+      ? loadedPeriods.list
+      : currentPeriods(resource);
+
+  const error = selectionError(sel, blocks, rules, resource, periods);
 
   function changeSel(next) {
     setSel(next);
@@ -112,15 +150,16 @@ export default function ReservePage({
 
       {resource && (
         <>
-          <ReserveHeader resource={resource} rules={rules} />
+          <ReserveHeader resource={resource} rules={rules} periods={periods} />
           <div className="reserve-layout">
             <WeekCalendar
               days={days}
               blocks={blocks}
               sel={sel}
               resource={resource}
+              periods={periods}
               rules={rules}
-              loading={loading}
+              loading={loading || periodsLoading}
               canGoBack={days[0] > new Date()}
               onToday={() => setWeekStart(startOfDay(new Date()))}
               onPrev={() => setWeekStart(prevWeek(weekStart))}

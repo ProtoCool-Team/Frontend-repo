@@ -85,10 +85,19 @@ permite CORS pentru http://localhost:5173.
   Defect, de la – până la, detalii).
 - Dacă perioada nouă prinde rezervări existente, apare un avertisment cu
   numărul lor (utilizatorii nu sunt încă anunțați automat).
-- Catalogul arată resursa „Indisponibil” cât timp perioada e în curs, iar
-  calendarul de rezervare marchează zilele perioadei curente / următoare.
+- Catalogul arată resursa „Indisponibil” cât timp perioada e în curs; în
+  calendarul de rezervare se blochează toate perioadele (vezi KAN-9).
 - „Stare: Scos din uz” din formularul resursei rămâne pentru retrageri pe
   termen nedefinit.
+
+## Blocarea perioadelor în calendar (KAN-9)
+
+- Pagina „Rezervare” încarcă toate perioadele curente și viitoare
+  (`GET /resources/{id}/unavailability`).
+- Zilele din orice perioadă sunt gri și nu pot fi selectate nici în calendar,
+  nici din câmpul de dată.
+- Antetul resursei listează perioadele următoare, iar backend-ul refuză oricum
+  rezervările dintr-o perioadă blocată.
 
 ## Rezervările mele (KAN-32)
 

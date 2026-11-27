@@ -1,10 +1,24 @@
-import {CATEGORIES} from '../constants.js';
-import {resourceState} from '../availability.js';
+import {CATEGORIES, unavailabilityLabel} from '../constants.js';
+import {periodRangeText, resourceState} from '../availability.js';
+import {isoDay} from '../reserveRules.js';
 import {Icon} from './Icons.jsx';
 import StatusPill from './StatusPill.jsx';
 
+const MAX_PERIODS = 3;
+
 // Cardul de sus al ecranului „Rezervare”: resursa și regulile ei.
-export default function ReserveHeader({resource, rules}) {
+export default function ReserveHeader({resource, rules, periods}) {
+  const list = periods || [];
+  const today = isoDay(new Date());
+  const visible = list.slice(0, MAX_PERIODS);
+  const extra = list.length - visible.length;
+  const isActive = (p) => p.start_date <= today && today <= p.end_date;
+  // Starea de azi după lista completă de perioade (mai nouă decât catalogul).
+  const state =
+    resource.status !== 'UNAVAILABLE' && list.some(isActive)
+      ? 'UNAVAILABLE'
+      : resourceState({...resource, unavailability: null});
+
   return (
     <section className="reserve-head panel">
       <div className={`reserve-cover cover-${resource.category}`}>
@@ -12,7 +26,7 @@ export default function ReserveHeader({resource, rules}) {
       </div>
       <div className="reserve-info">
         <h1>
-          {resource.name} <StatusPill state={resourceState(resource)} />
+          {resource.name} <StatusPill state={state} />
         </h1>
         <p className="muted">
           <Icon name="pin" size={13} />{' '}
@@ -25,6 +39,26 @@ export default function ReserveHeader({resource, rules}) {
             <Icon name="lock" size={11} />
             Necesită aprobare
           </span>
+        )}
+        {visible.length > 0 && (
+          <div className="reserve-periods-wrap">
+            <span className="muted">Indisponibil:</span>
+            <ul className="reserve-periods">
+              {visible.map((p) => {
+                return (
+                  <li
+                    key={p.period_id || `${p.start_date}-${p.end_date}`}
+                    className={isActive(p) ? 'is-active' : undefined}
+                  >
+                    <strong>{unavailabilityLabel(p.type)}</strong> ·{' '}
+                    {periodRangeText(p)}
+                    {p.details ? ` – ${p.details}` : ''}
+                  </li>
+                );
+              })}
+            </ul>
+            {extra > 0 && <span className="muted">și încă {extra}</span>}
+          </div>
         )}
       </div>
       <ul className="reserve-rules">
