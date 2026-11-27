@@ -36,6 +36,21 @@ export function atHour(day, h) {
 
 export const isWeekend = (d) => d.getDay() === 0 || d.getDay() === 6;
 
+// Ziua (ora locală) ca 'YYYY-MM-DD', ca în perioadele de indisponibilitate.
+export function isoDay(d) {
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  return `${d.getFullYear()}-${m}-${String(d.getDate()).padStart(2, '0')}`;
+}
+
+// KAN-8: ziua cade în perioada de indisponibilitate curentă / următoare.
+// (Toate perioadele, pentru calendar, vin în KAN-9.)
+function inUnavailability(resource, d) {
+  const period = resource?.unavailability;
+  if (!period) return false;
+  const day = isoDay(d);
+  return day >= period.start_date && day <= period.end_date;
+}
+
 // Primele `count` zile lucrătoare începând cu `from` (inclusiv).
 export function workingDays(from, count) {
   const days = [];
@@ -54,13 +69,19 @@ export const blocking = (blocks) =>
   blocks.filter((b) => !['CANCELLED', 'REJECTED'].includes(b.status));
 
 // Motivul pentru care intervalul ales nu poate fi rezervat, sau null.
-export function selectionError(sel, blocks, rules, now = new Date()) {
+export function selectionError(sel, blocks, rules, resource, now = new Date()) {
   if (!sel) return 'Alege un interval liber din calendar.';
+  if (resource?.status === 'UNAVAILABLE') {
+    return 'Resursa este scoasă din uz.';
+  }
   if (sel.end <= sel.start) {
     return 'Ora de sfârșit trebuie să fie după ora de început.';
   }
   if (sel.start < now) return 'Intervalul ales a trecut deja.';
   if (isWeekend(sel.start)) return 'Sâmbăta și duminica laboratorul e închis.';
+  if (inUnavailability(resource, sel.start)) {
+    return 'Resursa este indisponibilă în ziua aleasă.';
+  }
   if (sel.start > addDays(startOfDay(now), rules.maxDays + 1)) {
     return `Poți rezerva cu cel mult ${rules.maxDays} zile în avans.`;
   }
@@ -79,6 +100,7 @@ export function slotState({day, hour, blocks, sel, resource, rules, now}) {
   const slot = {start: atHour(day, hour), end: atHour(day, hour + 1)};
   if (slot.end <= now) return {kind: 'past'};
   if (resource?.status === 'UNAVAILABLE') return {kind: 'unavailable'};
+  if (inUnavailability(resource, slot.start)) return {kind: 'unavailable'};
   if (slot.start > addDays(startOfDay(now), rules.maxDays + 1)) {
     return {kind: 'out'};
   }

@@ -1,5 +1,9 @@
-import {categoryLabel, resourcesLabel} from '../constants.js';
-import {resourceState} from '../availability.js';
+import {
+  categoryLabel,
+  resourcesLabel,
+  unavailabilityLabel,
+} from '../constants.js';
+import {periodRangeText, resourceState} from '../availability.js';
 import AdminTabs from '../components/AdminTabs.jsx';
 import {Icon} from '../components/Icons.jsx';
 import StatusPill from '../components/StatusPill.jsx';
@@ -10,6 +14,7 @@ export default function ManageResourcesPage({
   onAdd,
   onEdit,
   onDelete,
+  onUnavailability,
   onNavigate,
 }) {
   const sorted = [...resources].sort((a, b) =>
@@ -78,6 +83,12 @@ export default function ManageResourcesPage({
                   </td>
                   <td>
                     <StatusPill state={resourceState(r)} />
+                    {r.unavailability && (
+                      <small className="muted">
+                        {unavailabilityLabel(r.unavailability.type)}{' '}
+                        {periodRangeText(r.unavailability)}
+                      </small>
+                    )}
                   </td>
                   <td>
                     {r.requiresApproval ? (
@@ -91,6 +102,12 @@ export default function ManageResourcesPage({
                   </td>
                   <td>
                     <div className="row-actions">
+                      <button
+                        className="btn btn-outline btn-sm"
+                        onClick={() => onUnavailability(r)}
+                      >
+                        Indisponibilitate
+                      </button>
                       <button
                         className="btn btn-outline btn-sm"
                         onClick={() => onEdit(r)}

@@ -1,5 +1,9 @@
-import {categoryLabel} from '../constants.js';
-import {nextChangeText, resourceState} from '../availability.js';
+import {STATUS, categoryLabel, unavailabilityLabel} from '../constants.js';
+import {
+  nextChangeText,
+  periodRangeText,
+  resourceState,
+} from '../availability.js';
 import {Icon} from './Icons.jsx';
 import StatusPill from './StatusPill.jsx';
 import AvailabilityBar from './AvailabilityBar.jsx';
@@ -7,6 +11,8 @@ import AvailabilityBar from './AvailabilityBar.jsx';
 export default function ResourceCard({resource, onReserve}) {
   const state = resourceState(resource);
   const unavailable = state === 'UNAVAILABLE';
+  const unav = resource.unavailability;
+  const unavLabel = unav ? unavailabilityLabel(unav.type) : '';
   const cover = unavailable
     ? 'cover-UNAVAILABLE'
     : `cover-${resource.category}`;
@@ -36,8 +42,16 @@ export default function ResourceCard({resource, onReserve}) {
             Necesită aprobare
           </span>
         )}
-        {unavailable && resource.statusNote && (
-          <p className="card-note">{resource.statusNote}</p>
+        {unav?.active && (
+          <p className="card-note">
+            {unavLabel}
+            {unav.details ? `: ${unav.details}` : ''}
+          </p>
+        )}
+        {!unavailable && unav && !unav.active && (
+          <small className="muted">
+            Indisponibil {periodRangeText(unav)} ({unavLabel})
+          </small>
         )}
         <AvailabilityBar resource={resource} />
       </div>
@@ -47,9 +61,10 @@ export default function ResourceCard({resource, onReserve}) {
           <Icon name="clock" size={13} />
           {nextChangeText(resource)}
         </span>
+        {/* La o indisponibilitate temporară se poate rezerva după ea. */}
         <button
           className="btn btn-primary"
-          disabled={unavailable}
+          disabled={resource.status === STATUS.UNAVAILABLE}
           onClick={() => onReserve(resource)}
         >
           Rezervă

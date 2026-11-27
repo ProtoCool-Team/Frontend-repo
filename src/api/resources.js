@@ -2,6 +2,7 @@
 // Dacă VITE_USE_MOCK=true, se folosesc date de test (fără backend).
 import {clearSession, getToken} from '../session.js';
 import {mockResources} from './mockData.js';
+import {mockUnavailabilityFor} from './unavailability.js';
 
 export const BASE =
   import.meta.env.VITE_API_URL || 'http://localhost:8000/api/v1';
@@ -10,8 +11,7 @@ const USE_MOCK = import.meta.env.VITE_USE_MOCK === 'true';
 // ---------- Adaptare între backend-ul Express și interfață ----------
 // Backend-ul are alte nume de categorii și câmpuri în snake_case.
 // Locația e o referință (location_id) la tabelul locations; backend-ul
-// întoarce și building/room/floor ale ei. Motivul și data de
-// indisponibilitate nu au încă coloane proprii, deci stau în attributes.
+// întoarce și building/room/floor ale ei.
 export const CATEGORY_FROM_API = {
   ROBOT: 'ROBOT',
   MEASURING_DEVICE: 'MEASUREMENT',
@@ -21,10 +21,8 @@ export const CATEGORY_FROM_API = {
 const CATEGORY_TO_API = Object.fromEntries(
   Object.entries(CATEGORY_FROM_API).map(([api, ui]) => [ui, api]),
 );
-const ATTRIBUTE_FIELDS = ['statusNote', 'unavailableUntil'];
 
 function fromBackend(r) {
-  const a = r.attributes || {};
   return {
     ...r, // restul câmpurilor rămân, pentru că PUT înlocuiește toată resursa
     id: r.resource_id,
@@ -35,18 +33,12 @@ function fromBackend(r) {
     floor: r.floor ?? null,
     status: r.status === 'AVAILABLE' ? 'AVAILABLE' : 'UNAVAILABLE',
     requiresApproval: Boolean(r.requires_approval),
-    statusNote: a.statusNote ?? null,
-    unavailableUntil: a.unavailableUntil ?? null,
+    unavailability: r.unavailability ?? null,
   };
 }
 
 // `data` = resursa originală peste care s-au pus valorile din formular.
 function toBackend(data) {
-  const attributes = {...(data.attributes || {})};
-  ATTRIBUTE_FIELDS.forEach((f) => {
-    if (data[f]) attributes[f] = data[f];
-    else delete attributes[f];
-  });
   return {
     name: data.name,
     description: data.description || null,
@@ -58,7 +50,7 @@ function toBackend(data) {
     max_consecutive_hours: data.max_consecutive_hours ?? null,
     max_advance_days: data.max_advance_days ?? null,
     min_cancel_notice_hours: data.min_cancel_notice_hours ?? null,
-    attributes,
+    attributes: data.attributes || {},
   };
 }
 
@@ -145,7 +137,11 @@ let nextId = data.length + 1;
 const wait = (v) => new Promise((resolve) => setTimeout(() => resolve(v), 250));
 
 const mockApi = {
-  getAll: () => wait(data.map((r) => ({...r}))),
+  // Perioadele de indisponibilitate se țin în api/unavailability.js.
+  getAll: () =>
+    wait(
+      data.map((r) => ({...r, unavailability: mockUnavailabilityFor(r.id)})),
+    ),
   getLocations: () => wait(mockLocations.map((l) => ({...l}))),
   create: (input) => {
     const item = withLocation({...input, id: nextId++});

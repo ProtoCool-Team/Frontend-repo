@@ -43,6 +43,8 @@ permite CORS pentru http://localhost:5173.
 | GET    | /api/v1/auth/me                     | contul logat, cu rolul actual (KAN-20)        |
 | GET    | /api/v1/users                       | utilizatorii, pentru Administrare (KAN-20)    |
 | PATCH  | /api/v1/users/{id}/role             | schimbă rolul unui utilizator (KAN-20)        |
+| GET/POST | /api/v1/resources/{id}/unavailability | perioadele de indisponibilitate (KAN-8) |
+| DELETE | /api/v1/resources/{id}/unavailability/{periodId} | încheie / anulează o perioadă (KAN-8) |
 
 ## Login și Creează cont (KAN-28)
 
@@ -75,6 +77,19 @@ permite CORS pentru http://localhost:5173.
   lor; alt email care conține „student” intră ca cercetător, restul ca
   administrator.
 
+## Indisponibilitate (KAN-8)
+
+- În Administrare → Resurse, butonul „Indisponibilitate” deschide
+  `src/components/UnavailabilityModal.jsx`: perioadele resursei („Încheie
+  acum” / „Anulează”) și formularul pentru o perioadă nouă (În revizie /
+  Defect, de la – până la, detalii).
+- Dacă perioada nouă prinde rezervări existente, apare un avertisment cu
+  numărul lor (utilizatorii nu sunt încă anunțați automat).
+- Catalogul arată resursa „Indisponibil” cât timp perioada e în curs, iar
+  calendarul de rezervare marchează zilele perioadei curente / următoare.
+- „Stare: Scos din uz” din formularul resursei rămâne pentru retrageri pe
+  termen nedefinit.
+
 ## Rezervările mele (KAN-32)
 
 „Eu” este utilizatorul logat (din token). Pentru teste fără login se pot
@@ -104,7 +119,8 @@ O resursă, așa cum vine de la backend:
       "location_id": "b0000000-0000-0000-0000-000000000001",
       "building": "Corp C", "room": "C102", "floor": 1,  // din tabelul locations
       "requires_approval": true,
-      "attributes": {}       // aici stau și statusNote / unavailableUntil
+      "attributes": {},
+      "unavailability": null // sau perioada curentă / următoare (KAN-8)
     }
 
 `src/api/resources.js` o transformă în forma folosită de componente

@@ -12,8 +12,6 @@ const EMPTY = {
   location_id: '',
   responsible_admin_id: '',
   status: STATUS.AVAILABLE,
-  statusNote: '',
-  unavailableUntil: '',
   requiresApproval: false,
 };
 
@@ -30,8 +28,6 @@ export default function ResourceFormModal({
           ...EMPTY,
           ...initial,
           responsible_admin_id: initial.responsible_admin_id || '',
-          statusNote: initial.statusNote || '',
-          unavailableUntil: initial.unavailableUntil || '',
         }
       : EMPTY,
   );
@@ -39,7 +35,6 @@ export default function ResourceFormModal({
   const [adminsError, setAdminsError] = useState(false);
   const [errors, setErrors] = useState({});
   const [saving, setSaving] = useState(false);
-  const unavailable = form.status === STATUS.UNAVAILABLE;
 
   useEffect(() => {
     let active = true;
@@ -92,8 +87,6 @@ export default function ResourceFormModal({
       responsible_admin_id: form.responsible_admin_id || null,
       status: form.status,
       requiresApproval: form.requiresApproval,
-      statusNote: unavailable ? form.statusNote.trim() || null : null,
-      unavailableUntil: unavailable ? form.unavailableUntil || null : null,
     };
     if (initial?.availability) data.availability = initial.availability;
     await onSave(data);
@@ -186,29 +179,14 @@ export default function ResourceFormModal({
               Disponibil pentru rezervări
             </option>
             <option value={STATUS.UNAVAILABLE}>
-              Indisponibil (defect / revizie)
+              Scos din uz (pe termen nedefinit)
             </option>
           </select>
+          <small className="muted">
+            Pentru revizii sau defecte temporare folosește butonul
+            „Indisponibilitate” din listă.
+          </small>
         </Field>
-
-        {unavailable && (
-          <div className="form-row">
-            <Field label="Motiv">
-              <input
-                value={form.statusNote}
-                onChange={bindField('statusNote')}
-                placeholder="ex. Calibrare anuală"
-              />
-            </Field>
-            <Field label="Indisponibil până la">
-              <input
-                type="date"
-                value={form.unavailableUntil}
-                onChange={bindField('unavailableUntil')}
-              />
-            </Field>
-          </div>
-        )}
 
         <label className="switch">
           <input
