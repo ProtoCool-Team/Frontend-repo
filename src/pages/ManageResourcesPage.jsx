@@ -1,5 +1,6 @@
 import {categoryLabel, resourcesLabel} from '../constants.js';
 import {resourceState} from '../availability.js';
+import AdminTabs from '../components/AdminTabs.jsx';
 import {Icon} from '../components/Icons.jsx';
 import StatusPill from '../components/StatusPill.jsx';
 
@@ -9,6 +10,7 @@ export default function ManageResourcesPage({
   onAdd,
   onEdit,
   onDelete,
+  onNavigate,
 }) {
   const sorted = [...resources].sort((a, b) =>
     a.name.localeCompare(b.name, 'ro'),
@@ -19,6 +21,7 @@ export default function ManageResourcesPage({
       <p className="crumbs">
         Acasă / Administrare / <strong>Resurse</strong>
       </p>
+      <AdminTabs page="admin" onNavigate={onNavigate} />
       <div className="page-head">
         <div>
           <h1>Gestionare resurse</h1>

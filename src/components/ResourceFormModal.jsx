@@ -1,4 +1,6 @@
-import {useState} from 'react';
+import {useEffect, useState} from 'react';
+import {usersApi} from '../api/users.js';
+import {ROLES} from '../auth.js';
 import {CATEGORIES, STATUS, locationLabel} from '../constants.js';
 import Field from './Field.jsx';
 import Modal from './Modal.jsx';
@@ -8,6 +10,7 @@ const EMPTY = {
   category: 'ROBOT',
   description: '',
   location_id: '',
+  responsible_admin_id: '',
   status: STATUS.AVAILABLE,
   statusNote: '',
   unavailableUntil: '',
@@ -26,14 +29,34 @@ export default function ResourceFormModal({
       ? {
           ...EMPTY,
           ...initial,
+          responsible_admin_id: initial.responsible_admin_id || '',
           statusNote: initial.statusNote || '',
           unavailableUntil: initial.unavailableUntil || '',
         }
       : EMPTY,
   );
+  const [admins, setAdmins] = useState(null); // null = se încarcă
+  const [adminsError, setAdminsError] = useState(false);
   const [errors, setErrors] = useState({});
   const [saving, setSaving] = useState(false);
   const unavailable = form.status === STATUS.UNAVAILABLE;
+
+  useEffect(() => {
+    let active = true;
+    usersApi
+      .getAll()
+      .then((list) => {
+        if (active) {
+          setAdmins(list.filter((u) => u.role === ROLES.ADMINISTRATOR));
+        }
+      })
+      .catch(() => {
+        if (active) setAdminsError(true);
+      });
+    return () => {
+      active = false;
+    };
+  }, []);
 
   // Handler de onChange care scrie valoarea controlului în form[field]
   const bindField = (field) => (e) =>
@@ -48,6 +71,11 @@ export default function ResourceFormModal({
     const e = {};
     if (!form.name.trim()) e.name = 'Completează denumirea resursei.';
     if (!form.location_id) e.location_id = 'Alege locația.';
+    // O resursă existentă trebuie să aibă un responsabil (la una nouă,
+    // backend-ul îl pune implicit pe cel care o creează).
+    if (initial && !form.responsible_admin_id) {
+      e.responsible_admin_id = 'Alege responsabilul.';
+    }
     setErrors(e);
     return Object.keys(e).length === 0;
   }
@@ -61,6 +89,7 @@ export default function ResourceFormModal({
       category: form.category,
       description: form.description.trim(),
       location_id: form.location_id,
+      responsible_admin_id: form.responsible_admin_id || null,
       status: form.status,
       requiresApproval: form.requiresApproval,
       statusNote: unavailable ? form.statusNote.trim() || null : null,
@@ -113,6 +142,42 @@ export default function ResourceFormModal({
               </option>
             ))}
           </select>
+        </Field>
+
+        <Field label="Responsabil" error={errorFor('responsible_admin_id')}>
+          <select
+            value={form.responsible_admin_id}
+            onChange={bindField('responsible_admin_id')}
+            disabled={adminsError || admins === null}
+          >
+            {initial ? (
+              <option value="" disabled>
+                Alege responsabilul…
+              </option>
+            ) : (
+              <option value="">Eu (implicit)</option>
+            )}
+            {/* Responsabilul actual, chiar dacă lista nu s-a încărcat. */}
+            {form.responsible_admin_id &&
+              !admins?.some((a) => a.id === form.responsible_admin_id) && (
+                <option value={form.responsible_admin_id}>
+                  Responsabilul actual
+                </option>
+              )}
+            {(admins || []).map((a) => (
+              <option key={a.id} value={a.id}>
+                {a.name} ({a.email})
+              </option>
+            ))}
+          </select>
+          <small className="muted">
+            {adminsError
+              ? 'Nu am putut încărca lista de administratori.'
+              : admins === null
+                ? 'Se încarcă administratorii…'
+                : 'Responsabilul aprobă rezervările și marchează resursa ' +
+                  'indisponibilă.'}
+          </small>
         </Field>
 
         <Field label="Stare">
