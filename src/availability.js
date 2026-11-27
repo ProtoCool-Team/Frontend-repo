@@ -28,11 +28,11 @@ export function formatDate(iso) {
 
 // Textul din subsolul cardului (ex. „Liber până la 14:00”)
 export function nextChangeText(r) {
+  if (r.status === STATUS.UNAVAILABLE) return 'Scos din uz';
   if (r.unavailability?.active) {
     const label = TYPE_LABELS[r.unavailability.type] || 'Indisponibil';
     return `${label} până la ${formatDate(r.unavailability.end_date)}`;
   }
-  if (r.status === STATUS.UNAVAILABLE) return 'Scos din uz';
   const slots = r.availability;
   if (!slots) return 'Liber acum';
   const now = currentSlot();

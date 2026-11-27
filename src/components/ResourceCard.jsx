@@ -1,5 +1,5 @@
 import {TYPE_LABELS} from '../api/unavailability.js';
-import {categoryLabel} from '../constants.js';
+import {STATUS, categoryLabel} from '../constants.js';
 import {formatDate, nextChangeText, resourceState} from '../availability.js';
 import {Icon} from './Icons.jsx';
 import StatusPill from './StatusPill.jsx';
@@ -59,9 +59,10 @@ export default function ResourceCard({resource, onReserve}) {
           <Icon name="clock" size={13} />
           {nextChangeText(resource)}
         </span>
+        {/* La o indisponibilitate temporară se poate rezerva după ea. */}
         <button
           className="btn btn-primary"
-          disabled={unavailable}
+          disabled={resource.status === STATUS.UNAVAILABLE}
           onClick={() => onReserve(resource)}
         >
           Rezervă

@@ -79,6 +79,9 @@ const mockApi = {
     if (!data.start_date || !data.end_date || data.end_date < data.start_date) {
       throw httpError('Interval de date invalid.', 400);
     }
+    if (data.start_date < localIsoDate()) {
+      throw httpError('Perioada nu poate începe în trecut', 400);
+    }
     const overlap = mockPeriods.some(
       (p) =>
         String(p.resource_id) === String(resourceId) &&
@@ -114,7 +117,8 @@ const mockApi = {
     if (period.end_date < today) {
       throw httpError('Perioada s-a încheiat deja.', 409);
     }
-    if (period.start_date > today) {
+    // Ca backend-ul: o perioadă care începe azi sau mai târziu se șterge.
+    if (period.start_date >= today) {
       mockPeriods.splice(idx, 1);
       return wait(null);
     }
@@ -123,5 +127,18 @@ const mockApi = {
     return wait({...updated});
   },
 };
+
+// Pentru catalogul mock: perioada curentă sau următoare a resursei,
+// cu aceeași formă ca `unavailability` din GET /resources.
+export function mockUnavailabilityFor(resourceId) {
+  const today = localIsoDate();
+  const period = mockPeriods
+    .filter(
+      (p) =>
+        String(p.resource_id) === String(resourceId) && p.end_date >= today,
+    )
+    .sort((a, b) => a.start_date.localeCompare(b.start_date))[0];
+  return period ? {...period, active: period.start_date <= today} : null;
+}
 
 export const unavailabilityApi = USE_MOCK ? mockApi : realApi;

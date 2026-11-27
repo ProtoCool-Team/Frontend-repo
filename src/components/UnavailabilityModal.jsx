@@ -80,6 +80,9 @@ export default function UnavailabilityModal({
     const e = {};
     if (!startDate) e.startDate = 'Alege data de început.';
     if (!endDate) e.endDate = 'Alege data de sfârșit.';
+    if (startDate && startDate < today) {
+      e.startDate = 'Perioada nu poate începe în trecut.';
+    }
     if (startDate && endDate && endDate < startDate) {
       e.endDate = 'Data de sfârșit trebuie să fie după data de început.';
     }
@@ -121,6 +124,7 @@ export default function UnavailabilityModal({
     try {
       await unavailabilityApi.remove(resource.id, period.period_id);
       if (!mounted.current) return;
+      setAffectedCount(0);
       notify(
         started ? 'Perioada a fost încheiată.' : 'Perioada a fost anulată.',
       );

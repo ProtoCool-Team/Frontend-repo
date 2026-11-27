@@ -52,7 +52,7 @@ export default function ReservePage({
     // notify lipsește intenționat: e o funcție nouă la fiecare randare.
   }, [resource, days, refresh]);
 
-  const error = selectionError(sel, blocks, rules);
+  const error = selectionError(sel, blocks, rules, resource);
 
   function changeSel(next) {
     setSel(next);

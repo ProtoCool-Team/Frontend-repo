@@ -2,6 +2,7 @@
 // Dacă VITE_USE_MOCK=true, se folosesc date de test (fără backend).
 import {clearSession, getToken} from '../session.js';
 import {mockResources} from './mockData.js';
+import {mockUnavailabilityFor} from './unavailability.js';
 
 export const BASE =
   import.meta.env.VITE_API_URL || 'http://localhost:8000/api/v1';
@@ -136,7 +137,11 @@ let nextId = data.length + 1;
 const wait = (v) => new Promise((resolve) => setTimeout(() => resolve(v), 250));
 
 const mockApi = {
-  getAll: () => wait(data.map((r) => ({...r}))),
+  // Perioadele de indisponibilitate se țin în api/unavailability.js.
+  getAll: () =>
+    wait(
+      data.map((r) => ({...r, unavailability: mockUnavailabilityFor(r.id)})),
+    ),
   getLocations: () => wait(mockLocations.map((l) => ({...l}))),
   create: (input) => {
     const item = withLocation({...input, id: nextId++});
