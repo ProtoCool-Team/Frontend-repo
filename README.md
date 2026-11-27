@@ -119,7 +119,8 @@ O resursă, așa cum vine de la backend:
       "location_id": "b0000000-0000-0000-0000-000000000001",
       "building": "Corp C", "room": "C102", "floor": 1,  // din tabelul locations
       "requires_approval": true,
-      "attributes": {}       // aici stau și statusNote / unavailableUntil
+      "attributes": {},
+      "unavailability": null // sau perioada curentă / următoare (KAN-8)
     }
 
 `src/api/resources.js` o transformă în forma folosită de componente

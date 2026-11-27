@@ -1,6 +1,9 @@
-import {TYPE_LABELS} from '../api/unavailability.js';
-import {STATUS, categoryLabel} from '../constants.js';
-import {formatDate, nextChangeText, resourceState} from '../availability.js';
+import {STATUS, categoryLabel, unavailabilityLabel} from '../constants.js';
+import {
+  nextChangeText,
+  periodRangeText,
+  resourceState,
+} from '../availability.js';
 import {Icon} from './Icons.jsx';
 import StatusPill from './StatusPill.jsx';
 import AvailabilityBar from './AvailabilityBar.jsx';
@@ -9,7 +12,7 @@ export default function ResourceCard({resource, onReserve}) {
   const state = resourceState(resource);
   const unavailable = state === 'UNAVAILABLE';
   const unav = resource.unavailability;
-  const unavLabel = unav ? TYPE_LABELS[unav.type] || 'Indisponibil' : '';
+  const unavLabel = unav ? unavailabilityLabel(unav.type) : '';
   const cover = unavailable
     ? 'cover-UNAVAILABLE'
     : `cover-${resource.category}`;
@@ -47,8 +50,7 @@ export default function ResourceCard({resource, onReserve}) {
         )}
         {!unavailable && unav && !unav.active && (
           <small className="muted">
-            Indisponibil {formatDate(unav.start_date)} –{' '}
-            {formatDate(unav.end_date)} ({unavLabel})
+            Indisponibil {periodRangeText(unav)} ({unavLabel})
           </small>
         )}
         <AvailabilityBar resource={resource} />

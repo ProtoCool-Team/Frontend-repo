@@ -1,6 +1,9 @@
-import {TYPE_LABELS} from '../api/unavailability.js';
-import {categoryLabel, resourcesLabel} from '../constants.js';
-import {formatDate, resourceState} from '../availability.js';
+import {
+  categoryLabel,
+  resourcesLabel,
+  unavailabilityLabel,
+} from '../constants.js';
+import {periodRangeText, resourceState} from '../availability.js';
 import AdminTabs from '../components/AdminTabs.jsx';
 import {Icon} from '../components/Icons.jsx';
 import StatusPill from '../components/StatusPill.jsx';
@@ -82,9 +85,8 @@ export default function ManageResourcesPage({
                     <StatusPill state={resourceState(r)} />
                     {r.unavailability && (
                       <small className="muted">
-                        {TYPE_LABELS[r.unavailability.type] || 'Indisponibil'}{' '}
-                        {formatDate(r.unavailability.start_date)} –{' '}
-                        {formatDate(r.unavailability.end_date)}
+                        {unavailabilityLabel(r.unavailability.type)}{' '}
+                        {periodRangeText(r.unavailability)}
                       </small>
                     )}
                   </td>

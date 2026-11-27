@@ -1,5 +1,10 @@
-import {TYPE_LABELS} from './api/unavailability.js';
-import {DAY_START, SLOT, SLOTS, STATUS} from './constants.js';
+import {
+  DAY_START,
+  SLOT,
+  SLOTS,
+  STATUS,
+  unavailabilityLabel,
+} from './constants.js';
 
 // Indexul orei curente în bara 08–20 (poate fi <0 sau >=SLOTS)
 export function currentSlot() {
@@ -26,11 +31,16 @@ export function formatDate(iso) {
   return d.toLocaleDateString('ro-RO', {day: 'numeric', month: 'short'});
 }
 
+// Intervalul unei perioade de indisponibilitate, ex. „1 dec. – 5 dec.”
+export function periodRangeText(p) {
+  return `${formatDate(p.start_date)} – ${formatDate(p.end_date)}`;
+}
+
 // Textul din subsolul cardului (ex. „Liber până la 14:00”)
 export function nextChangeText(r) {
   if (r.status === STATUS.UNAVAILABLE) return 'Scos din uz';
   if (r.unavailability?.active) {
-    const label = TYPE_LABELS[r.unavailability.type] || 'Indisponibil';
+    const label = unavailabilityLabel(r.unavailability.type);
     return `${label} până la ${formatDate(r.unavailability.end_date)}`;
   }
   const slots = r.availability;

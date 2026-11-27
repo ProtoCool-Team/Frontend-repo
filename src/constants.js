@@ -17,6 +17,16 @@ export function locationLabel(l) {
   return `${l.building} · ${l.room}${floor}`;
 }
 
+// KAN-8: tipurile perioadelor de indisponibilitate temporară.
+export const UNAVAILABILITY_LABELS = {
+  IN_REVIEW: 'În revizie',
+  DEFECT: 'Defect',
+};
+
+export function unavailabilityLabel(type) {
+  return UNAVAILABILITY_LABELS[type] || 'Indisponibil';
+}
+
 // Valorile câmpului `status` al unei resurse
 export const STATUS = {AVAILABLE: 'AVAILABLE', UNAVAILABLE: 'UNAVAILABLE'};
 

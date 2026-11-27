@@ -1,19 +1,10 @@
 // KAN-8: perioade de indisponibilitate temporară (revizie / defect).
 // Dacă VITE_USE_MOCK=true, perioadele sunt ținute în memorie.
+import {addDays, isoDay} from '../reserveRules.js';
 import {mockResources} from './mockData.js';
 import {request} from './resources.js';
 
 const USE_MOCK = import.meta.env.VITE_USE_MOCK === 'true';
-
-export const UNAVAILABILITY_TYPES = {
-  IN_REVIEW: 'IN_REVIEW',
-  DEFECT: 'DEFECT',
-};
-
-export const TYPE_LABELS = {
-  IN_REVIEW: 'În revizie',
-  DEFECT: 'Defect',
-};
 
 const realApi = {
   list: (resourceId) => request(`/resources/${resourceId}/unavailability`),
@@ -29,29 +20,10 @@ const realApi = {
 };
 
 // ---------- Date de test (mock) ----------
-function localIsoDate(d = new Date()) {
-  const y = d.getFullYear();
-  const m = String(d.getMonth() + 1).padStart(2, '0');
-  const day = String(d.getDate()).padStart(2, '0');
-  return `${y}-${m}-${day}`;
-}
-
-function yesterdayIso() {
-  const d = new Date();
-  d.setDate(d.getDate() - 1);
-  return localIsoDate(d);
-}
-
+// Perioadele inițiale vin din mockData (câmpul `unavailability`).
 const mockPeriods = mockResources
   .filter((r) => r.unavailability)
-  .map((r) => ({
-    period_id: r.unavailability.period_id,
-    resource_id: r.id,
-    type: r.unavailability.type,
-    details: r.unavailability.details ?? null,
-    start_date: r.unavailability.start_date,
-    end_date: r.unavailability.end_date,
-  }));
+  .map((r) => ({...r.unavailability, resource_id: r.id}));
 let nextMockId = mockPeriods.length + 1;
 
 const wait = (value) =>
@@ -63,28 +35,28 @@ function httpError(message, status) {
   return err;
 }
 
+const sameId = (a, b) => String(a) === String(b);
+
+// Perioadele curente și viitoare ale unei resurse, ordonate după început.
+function upcoming(resourceId) {
+  const today = isoDay(new Date());
+  return mockPeriods
+    .filter((p) => sameId(p.resource_id, resourceId) && p.end_date >= today)
+    .sort((a, b) => a.start_date.localeCompare(b.start_date));
+}
+
 const mockApi = {
-  list: (resourceId) => {
-    const today = localIsoDate();
-    const rows = mockPeriods
-      .filter(
-        (p) =>
-          String(p.resource_id) === String(resourceId) && p.end_date >= today,
-      )
-      .sort((a, b) => a.start_date.localeCompare(b.start_date))
-      .map((p) => ({...p}));
-    return wait(rows);
-  },
+  list: (resourceId) => wait(upcoming(resourceId).map((p) => ({...p}))),
   create: async (resourceId, data) => {
     if (!data.start_date || !data.end_date || data.end_date < data.start_date) {
       throw httpError('Interval de date invalid.', 400);
     }
-    if (data.start_date < localIsoDate()) {
+    if (data.start_date < isoDay(new Date())) {
       throw httpError('Perioada nu poate începe în trecut', 400);
     }
     const overlap = mockPeriods.some(
       (p) =>
-        String(p.resource_id) === String(resourceId) &&
+        sameId(p.resource_id, resourceId) &&
         p.start_date <= data.end_date &&
         data.start_date <= p.end_date,
     );
@@ -106,11 +78,9 @@ const mockApi = {
     return wait({period: {...period}, affected_reservations: []});
   },
   remove: async (resourceId, periodId) => {
-    const today = localIsoDate();
+    const today = isoDay(new Date());
     const idx = mockPeriods.findIndex(
-      (p) =>
-        String(p.resource_id) === String(resourceId) &&
-        String(p.period_id) === String(periodId),
+      (p) => sameId(p.resource_id, resourceId) && sameId(p.period_id, periodId),
     );
     if (idx === -1) throw httpError('Perioada nu a fost găsită.', 404);
     const period = mockPeriods[idx];
@@ -122,7 +92,7 @@ const mockApi = {
       mockPeriods.splice(idx, 1);
       return wait(null);
     }
-    const updated = {...period, end_date: yesterdayIso()};
+    const updated = {...period, end_date: isoDay(addDays(new Date(), -1))};
     mockPeriods[idx] = updated;
     return wait({...updated});
   },
@@ -131,14 +101,10 @@ const mockApi = {
 // Pentru catalogul mock: perioada curentă sau următoare a resursei,
 // cu aceeași formă ca `unavailability` din GET /resources.
 export function mockUnavailabilityFor(resourceId) {
-  const today = localIsoDate();
-  const period = mockPeriods
-    .filter(
-      (p) =>
-        String(p.resource_id) === String(resourceId) && p.end_date >= today,
-    )
-    .sort((a, b) => a.start_date.localeCompare(b.start_date))[0];
-  return period ? {...period, active: period.start_date <= today} : null;
+  const period = upcoming(resourceId)[0];
+  return period
+    ? {...period, active: period.start_date <= isoDay(new Date())}
+    : null;
 }
 
 export const unavailabilityApi = USE_MOCK ? mockApi : realApi;

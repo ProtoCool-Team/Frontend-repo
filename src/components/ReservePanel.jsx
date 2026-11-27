@@ -4,13 +4,11 @@ import {
   addDays,
   atHour,
   formatDay,
+  isoDay,
   pad,
 } from '../reserveRules.js';
 import {Icon} from './Icons.jsx';
 
-const iso = (d) =>
-  `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-` +
-  String(d.getDate()).padStart(2, '0');
 const range = (a, b) => Array.from({length: b - a}, (_, i) => a + i);
 
 // Panoul „Rezervare nouă” din dreapta: interval, scop, confirmare.
@@ -80,9 +78,9 @@ export default function ReservePanel({
           <span>Data</span>
           <input
             type="date"
-            value={sel ? iso(sel.start) : ''}
-            min={iso(today)}
-            max={iso(addDays(today, rules.maxDays))}
+            value={sel ? isoDay(sel.start) : ''}
+            min={isoDay(today)}
+            max={isoDay(addDays(today, rules.maxDays))}
             onChange={(e) => pickDate(e.target.value)}
           />
         </label>
@@ -94,7 +92,7 @@ export default function ReservePanel({
               disabled={!sel}
               onChange={(e) => {
                 const f = Number(e.target.value);
-                setTimes(iso(sel.start), f, f + (toH - fromH));
+                setTimes(isoDay(sel.start), f, f + (toH - fromH));
               }}
             >
               {range(DAY_START, DAY_END).map((h) => (
@@ -110,7 +108,7 @@ export default function ReservePanel({
               value={toH ?? ''}
               disabled={!sel}
               onChange={(e) =>
-                setTimes(iso(sel.start), fromH, Number(e.target.value))
+                setTimes(isoDay(sel.start), fromH, Number(e.target.value))
               }
             >
               {sel &&
