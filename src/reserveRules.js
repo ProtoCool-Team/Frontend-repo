@@ -1,3 +1,6 @@
+import {periodRangeText} from './availability.js';
+import {unavailabilityLabel} from './constants.js';
+
 // Regulile și calculele pentru ecranul „Rezervare”.
 export const DAY_START = 8;
 export const DAY_END = 20;
@@ -42,14 +45,16 @@ export function isoDay(d) {
   return `${d.getFullYear()}-${m}-${String(d.getDate()).padStart(2, '0')}`;
 }
 
-// KAN-8: ziua cade în perioada de indisponibilitate curentă / următoare.
-// (Toate perioadele, pentru calendar, vin în KAN-9.)
-function inUnavailability(resource, d) {
-  const period = resource?.unavailability;
-  if (!period) return false;
+// KAN-9: perioada de indisponibilitate care acoperă ziua `d`, sau null.
+export function periodOn(periods, d) {
+  if (!periods?.length) return null;
   const day = isoDay(d);
-  return day >= period.start_date && day <= period.end_date;
+  return periods.find((p) => day >= p.start_date && day <= p.end_date) || null;
 }
+
+// Fallback până se încarcă toate perioadele (sau dacă cererea eșuează).
+export const currentPeriods = (resource) =>
+  resource?.unavailability ? [resource.unavailability] : [];
 
 // Primele `count` zile lucrătoare începând cu `from` (inclusiv).
 export function workingDays(from, count) {
@@ -69,7 +74,14 @@ export const blocking = (blocks) =>
   blocks.filter((b) => !['CANCELLED', 'REJECTED'].includes(b.status));
 
 // Motivul pentru care intervalul ales nu poate fi rezervat, sau null.
-export function selectionError(sel, blocks, rules, resource, now = new Date()) {
+export function selectionError(
+  sel,
+  blocks,
+  rules,
+  resource,
+  periods = [],
+  now = new Date(),
+) {
   if (!sel) return 'Alege un interval liber din calendar.';
   if (resource?.status === 'UNAVAILABLE') {
     return 'Resursa este scoasă din uz.';
@@ -79,8 +91,12 @@ export function selectionError(sel, blocks, rules, resource, now = new Date()) {
   }
   if (sel.start < now) return 'Intervalul ales a trecut deja.';
   if (isWeekend(sel.start)) return 'Sâmbăta și duminica laboratorul e închis.';
-  if (inUnavailability(resource, sel.start)) {
-    return 'Resursa este indisponibilă în ziua aleasă.';
+  const p = periodOn(periods, sel.start);
+  if (p) {
+    return (
+      'Resursa este indisponibilă în ziua aleasă ' +
+      `(${unavailabilityLabel(p.type)}, ${periodRangeText(p)}).`
+    );
   }
   if (sel.start > addDays(startOfDay(now), rules.maxDays + 1)) {
     return `Poți rezerva cu cel mult ${rules.maxDays} zile în avans.`;
@@ -96,11 +112,20 @@ export function selectionError(sel, blocks, rules, resource, now = new Date()) {
 }
 
 // Starea unei celule de o oră din calendar.
-export function slotState({day, hour, blocks, sel, resource, rules, now}) {
+export function slotState({
+  day,
+  hour,
+  blocks,
+  sel,
+  resource,
+  periods,
+  rules,
+  now,
+}) {
   const slot = {start: atHour(day, hour), end: atHour(day, hour + 1)};
   if (slot.end <= now) return {kind: 'past'};
   if (resource?.status === 'UNAVAILABLE') return {kind: 'unavailable'};
-  if (inUnavailability(resource, slot.start)) return {kind: 'unavailable'};
+  if (periodOn(periods, slot.start)) return {kind: 'unavailable'};
   if (slot.start > addDays(startOfDay(now), rules.maxDays + 1)) {
     return {kind: 'out'};
   }

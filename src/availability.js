@@ -27,7 +27,11 @@ const hour = (i) => `${String(DAY_START + i).padStart(2, '0')}:00`;
 
 export function formatDate(iso) {
   if (!iso) return '';
-  const d = new Date(iso);
+  // 'YYYY-MM-DD' se citește ca zi locală (new Date ar lua miezul nopții UTC).
+  const d =
+    typeof iso === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(iso)
+      ? new Date(`${iso}T00:00`)
+      : new Date(iso);
   return d.toLocaleDateString('ro-RO', {day: 'numeric', month: 'short'});
 }
 

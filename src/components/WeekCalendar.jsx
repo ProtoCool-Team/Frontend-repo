@@ -1,4 +1,5 @@
-import {HOURS, pad, slotState} from '../reserveRules.js';
+import {unavailabilityLabel} from '../constants.js';
+import {HOURS, pad, periodOn, slotState} from '../reserveRules.js';
 import {Icon} from './Icons.jsx';
 
 const LABELS = {
@@ -22,6 +23,7 @@ export default function WeekCalendar({
   blocks,
   sel,
   resource,
+  periods,
   rules,
   loading,
   canGoBack,
@@ -74,14 +76,23 @@ export default function WeekCalendar({
       <div className="week-scroll">
         <div className="week-grid">
           <span />
-          {days.map((d) => (
-            <div key={+d} className="week-day">
-              <small>{d.toLocaleDateString('ro-RO', {weekday: 'short'})}</small>
-              <strong className={isToday(d, now) ? 'today' : ''}>
-                {d.getDate()}
-              </strong>
-            </div>
-          ))}
+          {days.map((d) => {
+            const p = periodOn(periods, d);
+            return (
+              <div
+                key={+d}
+                className={`week-day${p ? ' week-day-off' : ''}`}
+                title={periodTitle(p)}
+              >
+                <small>
+                  {d.toLocaleDateString('ro-RO', {weekday: 'short'})}
+                </small>
+                <strong className={isToday(d, now) ? 'today' : ''}>
+                  {d.getDate()}
+                </strong>
+              </div>
+            );
+          })}
           {HOURS.map((h) => (
             <Row key={h} hour={h}>
               {days.map((d) => {
@@ -91,6 +102,7 @@ export default function WeekCalendar({
                   blocks,
                   sel,
                   resource,
+                  periods,
                   rules,
                   now,
                 });
@@ -129,3 +141,8 @@ function Row({hour, children}) {
 
 const month = (d) => d.toLocaleDateString('ro-RO', {month: 'long'});
 const isToday = (d, now) => d.toDateString() === now.toDateString();
+
+function periodTitle(p) {
+  if (!p) return undefined;
+  return `${unavailabilityLabel(p.type)}${p.details ? `: ${p.details}` : ''}`;
+}
